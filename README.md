@@ -1,6 +1,6 @@
-# Cartier Digital Innovation Newsletter Generator
+# Fuxing Newsletter Generator
 
-An AI-assisted workflow for producing the monthly Cartier Digital Innovation newsletter, from raw article links to finished Figma cards — ready to export.
+An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw article links to finished Figma cards — ready to export.
 
 ---
 
