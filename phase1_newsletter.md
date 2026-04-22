@@ -88,4 +88,4 @@ Read the reference `.md` files in `reference_materials/` and assign each topic a
 *Category: [category]*
 ```
 
-Save the output as `Newsletter_[Month]_Data_Structure.md` inside that month's folder. Separate each entry with `---`.
+Save the output as `headline_summary_output.md` inside that month's folder. Separate each entry with `---`.

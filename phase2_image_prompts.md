@@ -45,7 +45,7 @@ Please follow the artistic style of [art style] art. Do not put any text in the 
 
 ## Output
 
-Compile all prompts into a single file: `image-prompts-[month].md` inside that month's folder.
+Compile all prompts into a single file: `image_prompts_output.md` inside that month's folder.
 Label each entry as `Topic N — VERTICAL` or `Topic N — HORIZONTAL`.
 
 Once the image prompts are approved, create the following directory inside that month's folder:

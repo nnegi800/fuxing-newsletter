@@ -15,9 +15,9 @@ Each month, you drop in a list of article links. The tool generates headlines, s
 ```
 Input file (links)
       ↓
-Phase 1 — Newsletter copy       → Newsletter_[Month]_Data_Structure.md
+Phase 1 — Newsletter copy       → headline_summary_output.md
       ↓
-Phase 2 — Image prompts         → image-prompts-[month].md
+Phase 2 — Image prompts         → image_prompts_output.md
       ↓
 Phase 3 — Figma assembly        → 10 exported PNG cards
 ```
@@ -40,7 +40,7 @@ The AI generates one image prompt per topic based on the approved headlines. Ver
 
 **🙋 Human required:**
 1. **Specify the art style** — tell the AI what visual style to use (e.g. "oil painting", "risograph", "ink illustration"). This sets the tone for all 10 images.
-2. **Run the prompts externally** — copy the prompts from `image-prompts-[month].md` and generate images in your tool of choice (Midjourney, DALL-E, etc.).
+2. **Run the prompts externally** — copy the prompts from `image_prompts_output.md` and generate images in your tool of choice (Midjourney, DALL-E, etc.).
 3. **Drop images into the `/images/` folder** — place all 10 generated images inside `[month]/images/`.
 4. **Confirm to proceed** — tell the AI the images are ready.
 
@@ -71,8 +71,8 @@ phase3_figma.md                  ← Phase 3 detailed rules
 README.md                        ← This file
 
 [Month]/
-  Newsletter_[Month]_Data_Structure.md   ← Phase 1 output
-  image-prompts-[month].md              ← Phase 2 output
+  headline_summary_output.md            ← Phase 1 output
+  image_prompts_output.md               ← Phase 2 output
   images/                               ← Drop generated images here
 
 reference_materials/

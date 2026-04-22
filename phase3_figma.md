@@ -92,7 +92,7 @@ For `Category_Horizontal` frames, apply Rule 2 to the `summary` layer (which hol
 - R1 > 0: shorten headline slightly, re-apply, re-check.
 - R2 > 0: shorten summary slightly, re-apply, re-check.
 - Use the chars-to-height ratio to estimate cuts: `target_chars = target_height / (current_height / current_chars)`.
-- After fixing any topic, update `Newsletter_[month]_Data_Structure.md` to stay in sync with Figma.
+- After fixing any topic, update `headline_summary_output.md` to stay in sync with Figma.
 
 ---
 

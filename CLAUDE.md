@@ -51,8 +51,8 @@ Topic 3:
 
 | Phase | What it produces | Detail |
 |---|---|---|
-| **Phase 1** — Newsletter | `Newsletter_[Month]_Data_Structure.md` | [→ phase1_newsletter.md](phase1_newsletter.md) |
-| **Phase 2** — Image Prompts | `image-prompts-[month].md` | [→ phase2_image_prompts.md](phase2_image_prompts.md) |
+| **Phase 1** — Newsletter | `headline_summary_output.md` | [→ phase1_newsletter.md](phase1_newsletter.md) |
+| **Phase 2** — Image Prompts | `image_prompts_output.md` | [→ phase2_image_prompts.md](phase2_image_prompts.md) |
 | **Phase 3** — Figma Assembly | 10 exported PNG cards | [→ phase3_figma.md](phase3_figma.md) |
 
 Each phase only begins once the user explicitly approves the previous phase's output.
