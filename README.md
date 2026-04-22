@@ -45,8 +45,8 @@ No summary.
 
 **🙋 Human required:**
 1. **Specify the art style** (e.g. "oil painting", "risograph", "ink illustration").
-2. **Run the prompts externally** - generate images in Midjourney, DALL-E, or similar.
-3. **Drop all 10 images** into `[month]/images/` and confirm.
+2. **Provide an API key** (optional) - if you have a key for OpenAI (DALL-E 3), Google (Imagen 3), or Stability AI, images are generated and saved automatically.
+3. **If no API key** - run the prompts in your tool of choice and save all 10 images into `[month]/images/` as `1.png` through `10.png`, then confirm.
 
 ---
 
@@ -70,7 +70,7 @@ No summary.
 | Start Phase 1 | Upload the input file |
 | End Phase 1 | Review and approve newsletter copy |
 | Start Phase 2 | Specify the art style |
-| During Phase 2 | Generate images externally and drop into `/images/` |
+| During Phase 2 | Provide API key for auto-generation, or generate manually and drop into `/images/` |
 | Start Phase 3 | Paste images onto Figma canvas |
 | During Phase 3 | Swap fonts using Font Switcher plugin |
 | End Phase 3 | Export the 10 cards from Figma |
