@@ -1,6 +1,6 @@
 # Fuxing Newsletter Generator
 
-An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw article links to finished Figma cards — ready to export.
+An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw article links to finished Figma cards - ready to export.
 
 ---
 
@@ -8,9 +8,9 @@ An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw ar
 
 | Phase | Input | Output |
 |---|---|---|
-| **Phase 1** — Newsletter copy | `.txt` input file of article links | `headline_summary_output.md` — headlines, summaries, categories |
-| **Phase 2** — Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` — one image prompt per topic |
-| **Phase 3** — Figma assembly | Approved prompts + 10 generated images | 10 exported `.png` cards |
+| **Phase 1** - Newsletter copy | `.txt` input file of article links | `headline_summary_output.md` - headlines, summaries, categories |
+| **Phase 2** - Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` - one image prompt per topic |
+| **Phase 3** - Figma assembly | Approved prompts + 10 generated images | 10 exported `.png` cards |
 
 Each phase only begins once you explicitly approve the previous output.
 
@@ -33,7 +33,7 @@ No summary.
 
 ---
 
-## Phase 1 — Newsletter Copy
+## Phase 1 - Newsletter Copy
 
 **🙋 Human required:**
 1. **Upload the input file** to start the session.
@@ -41,16 +41,16 @@ No summary.
 
 ---
 
-## Phase 2 — Image Prompts
+## Phase 2 - Image Prompts
 
 **🙋 Human required:**
 1. **Specify the art style** (e.g. "oil painting", "risograph", "ink illustration").
-2. **Run the prompts externally** — generate images in Midjourney, DALL-E, or similar.
+2. **Run the prompts externally** - generate images in Midjourney, DALL-E, or similar.
 3. **Drop all 10 images** into `[month]/images/` and confirm.
 
 ---
 
-## Phase 3 — Figma Assembly
+## Phase 3 - Figma Assembly
 
 **🙋 Human required:**
 1. **Paste all 10 images** onto the Figma canvas. Names just need to include the numbers 1–10 (e.g. `image_1`, `img3`, `4`).
@@ -59,7 +59,7 @@ No summary.
    - Inter Bold → Brilliant Cut Pro Medium
    - Roboto Regular → Fancy Cut Pro Regular
 4. **Confirm** font swap is done.
-5. **Export** — select all 10 `Topic_N` frames, click Export in the right panel.
+5. **Export** - select all 10 `Topic_N` frames, click Export in the right panel.
 
 ---
 
