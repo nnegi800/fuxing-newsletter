@@ -25,6 +25,8 @@ Used for style and category calibration:
 
 ## Input File Format
 
+Name the file `input_data_[month].txt` (e.g. `input_data_may.txt`).
+
 ```
 Topic 1:
 - https://...

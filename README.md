@@ -18,7 +18,7 @@ Each phase only begins once you explicitly approve the previous output.
 
 ## Input File
 
-The input file is a plain `.txt` file listing article links grouped by topic. Full format spec in `CLAUDE.md`.
+The input file is a plain `.txt` file listing article links grouped by topic. Name it `input_data_[month].txt` (e.g. `input_data_may.txt`). Full format spec in `CLAUDE.md`.
 
 ```
 Topic 1:
