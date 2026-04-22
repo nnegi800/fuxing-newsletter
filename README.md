@@ -15,7 +15,7 @@ Each month, you drop in a list of article links. The tool generates headlines, s
 | Phase | Input | Output |
 |---|---|---|
 | **Phase 1** - Newsletter copy | `.txt` input file of article links | `headline_summary_output.md` - headlines, summaries, categories |
-| **Phase 2** - Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` - one image prompt per topic |
+| **Phase 2** - Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` - one image prompt per topic. If an API key is provided, images are also generated and saved automatically to `[month]/images/` |
 | **Phase 3** - Figma assembly | Approved prompts + 10 generated images | 10 exported `.png` cards |
 
 Each phase only begins once you explicitly approve the previous output.
