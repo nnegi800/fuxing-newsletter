@@ -10,17 +10,15 @@ Each month, you drop in a list of article links. The tool generates headlines, s
 
 ---
 
-## Workflow Overview
+## Workflow
 
-```
-Input file (links)
-      |
-Phase 1 - Newsletter copy       -> headline_summary_output.md
-      |
-Phase 2 - Image prompts         -> image_prompts_output.md
-      |
-Phase 3 - Figma assembly        -> 10 exported PNG cards
-```
+| Phase | Input | Output |
+|---|---|---|
+| **Phase 1** - Newsletter copy | `.txt` input file of article links | `headline_summary_output.md` - headlines, summaries, categories |
+| **Phase 2** - Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` - one image prompt per topic |
+| **Phase 3** - Figma assembly | Approved prompts + 10 generated images | 10 exported `.png` cards |
+
+Each phase only begins once you explicitly approve the previous output.
 
 ---
 
