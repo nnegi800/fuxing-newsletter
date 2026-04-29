@@ -128,7 +128,21 @@ This uniform-scale center-crop approach keeps the pattern undistorted and contin
 
 ---
 
-## Step 7 — Header & Footer
+## Step 7 — Link Annotations
+
+After the background image is applied, create a text annotation to the right of each `Topic_N` frame containing the first "Read more" URL for that topic (from `headline_summary_output.md`, in sorted Figma order).
+
+**Rules:**
+- Raw URL only — no publication name, no label.
+- Position: `x = topic.absoluteBoundingBox.x + topic.width + 30`, `y = topic.absoluteBoundingBox.y`
+- Font: Inter Regular, 14px, colour #0000EE (standard link blue)
+- Set a hyperlink on the full text: `textNode.setRangeHyperlink(0, url.length, { type: 'URL', value: url })`
+- Name each annotation node `link_Topic_N` so they are easy to find and never confused with card content.
+- These nodes sit outside the card bounds and are never exported — they are canvas-only references.
+
+---
+
+## Step 8 — Header & Footer
 
 After all 10 `Topic_N` frames are stacked and their background image is applied, clone the `Header` and `Footer` template nodes from the canvas and position them as follows:
 
