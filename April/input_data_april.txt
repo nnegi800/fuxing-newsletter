@@ -1,0 +1,39 @@
+Topic 1:
+[SpaceX has option to buy Cursor for $60B — TechCrunch](https://techcrunch.com/2026/04/21/spacex-is-working-with-cursor-and-has-an-option-to-buy-the-startup-for-60-billion/) · [Microsoft looked at buying Cursor before SpaceX deal](https://www.cnbc.com/2026/04/22/microsoft-looked-at-buying-cursor-before-spacex-deal-sources-say.html) 
+Narrative:
+
+Topic 2:
+[Tim Cook stepping down, John Ternus named Apple CEO](https://fortune.com/2026/04/20/apple-ceo-tim-cook-stepping-down-hardware-exec-john-ternus-new-ceo/) · [Tim Cook's 15-year legacy](https://techcrunch.com/2026/04/21/apple-tim-cook-ceo-15-year-legacy-takeaways-ios-silicon-china-trillion-ai/) · [Part of a broader 2026 CEO reckoning](https://fortune.com/2026/04/21/tim-cook-apple-ceo-transition-turnover-reckoning/)
+Narrative:
+
+Topic 3:
+[Anthropic launches Claude Design — TechCrunch](https://techcrunch.com/2026/04/17/anthropic-launches-claude-design-a-new-product-for-creating-quick-visuals/) · [Claude Design challenges Figma — VentureBeat](https://venturebeat.com/technology/anthropic-just-launched-claude-design-an-ai-tool-that-turns-prompts-into-prototypes-and-challenges-figma) · [Figma stock: $142 to $17 — News Anyway](https://www.newsanyway.com/2026/04/27/figma-stock-analysis-from-a-142-high-to-a-17-low-how-one-of-2025s-hottest-ipos-lost-88-in-eight-months)
+Narrative:
+
+Topic 4:
+[Google launches two new AI chips to compete with Nvidia — TechCrunch](https://techcrunch.com/2026/04/22/google-cloud-next-new-tpu-ai-chips-compete-with-nvidia/) · [Anthropic commits $50B to Google TPUs over Nvidia](https://www.cnbc.com/2026/04/22/google-launches-training-and-inference-tpus-in-latest-shot-at-nvidia.html) · [The rise of custom AI chips is breaking Nvidia's grip](https://investorplace.com/hypergrowthinvesting/2026/04/the-rise-of-custom-ai-chips-is-breaking-nvidias-grip/)
+Narrative:
+
+Topic 5:
+[Stanford AI Index 2026 — US leads China by 2.7%](https://hai.stanford.edu/ai-index/2026-ai-index-report) · [China narrows gap spending 23x less](https://thenextweb.com/news/stanford-ai-index-2026-china-us-performance-gap) · [Fortune: China nearly erased US AI lead](https://fortune.com/2026/04/16/stanford-study-how-has-china-gained-on-us-ai-war/)
+Narrative:
+
+Topic 6:
+[Harness engineering — Martin Fowler](https://martinfowler.com/articles/harness-engineering.html) · [What is harness engineering — MindStudio](https://www.mindstudio.ai/blog/what-is-harness-engineering-beyond-prompt-context-engineering) · [Third evolution: harness engineering — Epsilla](https://www.epsilla.com/blogs/harness-engineering-evolution-prompt-context-autonomous-agents)
+Narrative: No Summary
+
+Topic 7:
+[Q1 2026 shatters venture funding records at $300B](https://news.crunchbase.com/venture/record-breaking-funding-ai-global-q1-2026/) · [AngelList's USVC gives retail investors exposure to OpenAI, Anthropic, xAI from $500](https://finance.yahoo.com/markets/stocks/articles/angellists-usvc-gives-investors-exposure-203309312.html) · [USVC — democratizing venture capital](https://www.indexbox.io/blog/usvc-a-new-500-minimum-venture-fund-opens-private-markets-to-all-us-investors/)
+Narrative:
+
+Topic 8:
+https://techcrunch.com/2026/04/25/the-climate-tech-ipo-window-could-finally-be-cracking-open/
+Narrative:
+
+Topic 9:
+[Project Ace — Nature](https://www.nature.com/articles/s41586-026-10338-5) · [Sony AI robot beats pro table tennis — TechRadar](https://www.techradar.com/ai-platforms-assistants/it-totally-blew-my-mind-sonys-project-ace-robot-plays-ping-pong-better-than-the-pros-and-could-mark-a-major-robotics-turning-point) · [Gizmodo](https://gizmodo.com/watch-sonys-ai-robot-compete-with-and-beat-elite-table-tennis-players-2000749346)
+Narrative:
+
+Topic 10:
+[OpenAI acquires TBPN — TechCrunch](https://techcrunch.com/2026/04/02/openai-acquires-tbpn-the-buzzy-founder-led-business-talk-show/) · [Why OpenAI bought TBPN — NPR](https://www.npr.org/2026/04/08/nx-s1-5775734/openai-tbpn-tech-media-silicon-valley) · [OpenAI isn't just buying a podcast — CNN](https://www.cnn.com/2026/04/03/media/openai-tbpn-podcast-sale-lehane)
+Narrative: No Summary

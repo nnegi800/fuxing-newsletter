@@ -23,6 +23,8 @@ For each topic:
    - **Main theme:** the core visual concept the image should evoke
 4. Assemble the image prompt using the template below.
 
+**Important — no real person names anywhere in the prompt:** Never include any real person's name in an image prompt — not in the "The title is:" field and not in the main theme description. Both fields are parsed by the image generation tool and names in either location trigger guardrail errors. Before writing any prompt, scan the headline for real person names and replace them with role descriptions in both fields (e.g. "Tim Cook" → "a longtime tech CEO", "John Ternus" → "a hardware engineer turned CEO", "Elon Musk" → "a tech billionaire"). Company names and brand logos are fine.
+
 ---
 
 ## Prompt Templates

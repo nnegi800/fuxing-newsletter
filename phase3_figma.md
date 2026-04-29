@@ -18,9 +18,18 @@ Only proceed once the user confirms.
 
 ---
 
-## Step 2 — Clone Templates
+## Step 2 — Sort by Category, Then Clone Templates
 
-For each topic, clone the correct template group and name it `Topic_N`. Do not set any text or images yet.
+**Before cloning anything, reorder the topics by category.** Topics must be grouped so that all topics sharing a category appear consecutively. Use the category assignments from `headline_summary_output.md`.
+
+**Sort rule:**
+- Determine the first appearance order of each category (i.e. whichever category appears first in the original topic list defines its rank).
+- Within each category group, topics maintain their original relative order.
+- This sorted order becomes the new processing sequence for all subsequent steps. `Topic_N` names in Figma reflect this new order (Topic_1 = first topic in sorted order, Topic_2 = second, etc.), not the original input numbering.
+
+**Example:** If original order is T1=FOCUS_AI, T2=EMPLOYEE, T3=FOCUS_AI, T4=TECHNOLOGIC — sorted order becomes T1(FOCUS_AI), T3(FOCUS_AI), T2(EMPLOYEE), T4(TECHNOLOGIC), renamed Topic_1 through Topic_4 in Figma.
+
+For each topic in sorted order, clone the correct template group and name it `Topic_N`. Do not set any text or images yet.
 
 **Template selection:**
 | Condition | Template |
@@ -90,8 +99,7 @@ For `Category_Horizontal` frames, apply Rule 2 to the `summary` layer (which hol
 
 **Fixing violations:**
 - R1 > 0: shorten headline slightly, re-apply, re-check.
-- R2 > 0: shorten summary slightly, re-apply, re-check.
-- Use the chars-to-height ratio to estimate cuts: `target_chars = target_height / (current_height / current_chars)`.
+- R2 — the bottom of the summary should reach the bottom edge of the READ_STORY box. This is the target length, not just an allowance. If the summary falls short, extend it with additional context. If it exceeds the READ_STORY box bottom, shorten it. The placeholder fonts (Inter/Roboto) run larger than the final fonts (Brilliant Cut Pro / Fancy Cut Pro), so a summary that just reaches the READ_STORY box bottom at this stage will sit above it after the font swap in Step 7 — which is the correct final state.
 - After fixing any topic, update `headline_summary_output.md` to stay in sync with Figma.
 
 ---
@@ -120,7 +128,18 @@ This uniform-scale center-crop approach keeps the pattern undistorted and contin
 
 ---
 
-## Step 7 — Font Swap
+## Step 7 — Header & Footer
+
+After all 10 `Topic_N` frames are stacked and their background image is applied, clone the `Header` and `Footer` template nodes from the canvas and position them as follows:
+
+- **Header:** clone `Header`, place it directly above `Topic_1` — `header.y = Topic_1.y - header.height` (zero gap).
+- **Footer:** clone `Footer`, place it directly below the last topic — `footer.y = Topic_10.y + Topic_10.height` (zero gap).
+
+Name the clones `Header_Final` and `Footer_Final`. Do not set any text inside them — they are static.
+
+---
+
+## Step 8 — Font Swap
 
 Once all 10 topics pass both overlap rules, output this instruction verbatim:
 
@@ -137,7 +156,15 @@ This takes ~30 seconds. Let me know once done.
 
 ## Step 8 — Export Setup
 
-Once the user confirms fonts are swapped, run a script that sets PNG 2x export settings on each `Topic_N` frame. Then output this instruction verbatim:
+**Before applying export settings**, the Header and Footer must be grouped into their respective topic frames:
+- Group the `Header` node together with `Topic_1` (select both → Cmd+G) and rename the group `Topic_1`.
+- Group the `Footer` node together with the last topic frame (select both → Cmd+G) and rename the group `Topic_10` (or whatever the last topic number is).
+
+This ensures each exported PNG includes the header/footer as part of the card, not as a separate element.
+
+Ask the user to confirm this grouping is done before proceeding.
+
+Once confirmed, run a script that sets PNG 2x export settings on each `Topic_N` frame. Then output this instruction verbatim:
 
 ---
 ✅ **Export settings applied. To download all 10 cards:**

@@ -31,7 +31,7 @@ Target length: **~160 characters**. For `No summary.` topics: **up to 240 charac
 **Style rules:**
 - ALL CAPS with a dot at the end.
 - No em dashes (—). Use a colon or comma instead if a pause is needed.
-- One key statistic at most. Save detailed numbers for the summary.
+- One key statistic at most per headline. Save the rest for the summary. A headline with no statistic is fine; a headline with two or more is not.
 - Capture the story angle — do not front-load data.
 - **Multi-link topics:** Identify the shared industry trend, transformation, or shift across all articles and lead with it as a hook. Format: `OVERARCHING THEME: SPECIFIC DETAIL.` (e.g. "LOYALTY IS DEAD IN TECH: AS MICROSOFT, AMAZON AND GOOGLE...")
 
@@ -45,14 +45,18 @@ Calibrate against past Cartier DI newsletter headline examples in `reference_mat
 
 **Skip this step entirely for `No summary.` topics.**
 
-Target length: **~415 characters**.
+Target length: **~415 characters**. Never exceed **600 characters** — if the content demands it, cut the least important detail rather than expanding further.
 
 **Style rules:**
 - No em dashes (—).
 - No semicolons.
 - No sentence fragments or colon-as-a-break constructions (e.g. "The goal: build X" or "A key limitation: Y"). Every sentence must be complete.
-- Explain the story from scratch — assume the reader knows nothing. Start with basic context before getting into details.
-- Statistics and figures belong here, not in the headline.
+- Explain the story from scratch — assume the reader knows nothing. Open with a sentence that gives the reader just enough context to understand what's happening, then move into the specific event or detail. Do not lead with jargon, proper nouns, or insider references without first grounding them. For example: if the summary references a named test or concept, briefly define it in one clause before describing what happened with it.
+- Statistics and figures belong here, not in the headline. Use specific numbers (e.g. "2.7%") rather than vague qualifiers ("nearly closed").
+- Connect facts to meaning using transition phrases ("this underscores", "the result", "the broader implication"). Do not leave the reader to infer why a fact matters — state it.
+- Do not over-explain technical concepts. One brief defining clause is enough (e.g. "a process that does X"). Move on.
+- Do not contextualize what the reader already knows from the headline. The summary extends the story — it does not repeat it.
+- End on the implication or consequence, not on a neutral restatement of the event.
 
 Calibrate against past Cartier DI newsletter summary examples in `reference_materials/`.
 
