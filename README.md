@@ -6,7 +6,7 @@ An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw ar
 
 ## What it does
 
-Each month, you drop in a list of article links. The tool generates headlines, summaries, image prompts, and assembles everything into Figma-ready cards. It runs across three phases, each building on the last.
+Each month starts with either Phase 0 (Claude searches the web and surfaces candidate stories for your approval) or a manually prepared input file. From there, the tool generates headlines, summaries, image prompts, and assembles everything into Figma-ready cards across four phases, each building on the last.
 
 ---
 
@@ -47,6 +47,8 @@ The AI generates one image prompt per topic based on the approved headlines. Ver
 ## Phase 3 - Figma Assembly
 
 The AI uses the Figma Plugin API to clone templates, transfer images, set text, check overlaps, apply the background, and configure exports.
+
+**Figma template file:** [Newsletter_Template](https://www.figma.com/design/qwCKC7PIH7V2Kivhtn9OZW/Newsletter_Template?node-id=0-1&t=HB573EBttLRaWmvS-1) — contains all 5 template variants (`Category_Vertical_Image_Left`, `Category_Vertical_Image_Right`, `Category_Horizontal`, `no_category_left_image`, `no_category_right_image`), the background image rectangle, and header/footer nodes.
 
 **🙋 Human required:**
 1. **Paste images onto the Figma canvas** - open the Figma file and manually paste all 10 images directly onto the canvas. Names just need to include the numbers 1-10 somewhere (e.g. `image_1`, `img3`, `4`).

@@ -26,6 +26,8 @@ Used for style and category calibration:
 - `reference_materials/April/Newsletter_April_Data_Structure.md` — April 2026 published newsletter
 - PNG files in each month's directory show the visual layout of published newsletters
 
+**Figma template file:** [Newsletter_Template](https://www.figma.com/design/qwCKC7PIH7V2Kivhtn9OZW/Newsletter_Template?node-id=0-1&t=HB573EBttLRaWmvS-1) — all 5 template variants, background image rectangle, header and footer nodes.
+
 ---
 
 ## Input File Format
