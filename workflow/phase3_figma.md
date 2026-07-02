@@ -65,42 +65,41 @@ This is a pure Figma-to-Figma operation — no local files, no base64 encoding.
 ## Step 4 — Set Text
 
 Set text in each `Topic_N` frame using placeholder fonts:
-- `headline` layer → headline text in **Inter Bold**
-- `summary` layer → summary text in **Roboto Regular**
-- `category_name` layer → category label in **Inter Bold** (category group frames only)
-- Set `textAutoResize = 'HEIGHT'` on all headline and summary nodes so text boxes grow with content.
+- `headline` layer → headline text in **Outfit Medium**
+- `summary` layer → summary text in **Karla Regular**
+- `category_name` layer → category label in **Outfit Medium** (category group frames only)
+- Set `textAutoResize = 'NONE'` on all headline and summary nodes — fixed bounding boxes are applied in Step 5.
 - Leave `READ_STORY extra_text` untouched — it is static.
 
 **Layer name exceptions:**
-- `Category_Horizontal`: the `summary` layer holds the headline text (no actual summary); use **Inter Bold**.
+- `Category_Horizontal`: the `summary` layer holds the headline text (no actual summary); use **Outfit Medium**.
 - `no_category_right_image`: the headline layer is named `title`, not `headline`.
 
-**Font sandbox note:** Locally installed fonts (Brilliant Cut Pro, Fancy Cut Pro) are never accessible via `loadFontAsync`. Always use Inter Bold for headlines/categories and Roboto Regular for summaries as placeholders. Do NOT ask the user to swap fonts yet — overlap checks must run first while Inter/Roboto are active so text heights can be measured accurately.
+**Font sandbox note:** Locally installed fonts (Brilliant Cut Pro, Fancy Cut Pro) are never accessible via `loadFontAsync`. Always use Outfit Medium for headlines/categories and Karla Regular for summaries as placeholders.
 
 ---
 
-## Step 5 — Check Text Overlap
+## Step 5 — Apply Fixed Bounding Boxes
 
-Run a script on each `Topic_N` frame enforcing two rules.
+Text length is already controlled by Phase 1 character limits (90–110 chars headline, 530–590 chars summary). This step just locks the layout into fixed dimensions — no measuring, no trimming, no overflow logic.
 
-**Rule 1 — Headline must not overlap summary:**
-Compare `headlineNode.y + headlineNode.height` against `summaryNode.y`. Result must be ≤ 0. Only shorten the headline if it overlaps — do not adjust it purely for spacing.
-
-Skip Rule 1 for `Category_Horizontal` frames (no separate headline layer).
-
-**Rule 2 — Summary must not overlap READ_STORY:**
-Compare `summaryNode.y + summaryNode.height` against `readStoryNode.y`. Result must be ≤ 0. Only shorten the summary if it overflows — do not adjust it purely for spacing.
-
-For `Category_Horizontal` frames, apply Rule 2 to the `summary` layer (which holds headline text).
+**Fixed dimensions (all vertical templates):**
+- Headline box: **459 × 73px**
+- Summary box: **459 × 318px**, positioned at `headlineNode.y + 73 + 5`
 
 **Layer name exceptions:**
-- `no_category_right_image`: headline layer is named `title`.
-- `READ_STORY extra text` (space) vs `READ_STORY extra_text` (underscore) — check both.
+- `no_category_right_image`: headline layer is named `title`, not `headline`.
+- `Category_Horizontal`: skip this step entirely.
 
-**Fixing violations:**
-- R1 > 0: shorten headline slightly, re-apply, re-check.
-- R2 — the bottom of the summary should reach the bottom edge of the READ_STORY box. This is the target length, not just an allowance. If the summary falls short, extend it with additional context. If it exceeds the READ_STORY box bottom, shorten it. The placeholder fonts (Inter/Roboto) run larger than the final fonts (Brilliant Cut Pro / Fancy Cut Pro), so a summary that just reaches the READ_STORY box bottom at this stage will sit above it after the font swap in Step 7 — which is the correct final state.
-- After fixing any topic, update `headline_summary_output.md` to stay in sync with Figma.
+**Script for each vertical topic:**
+```js
+headlineNode.textAutoResize = 'NONE';
+headlineNode.resize(459, 73);
+
+summaryNode.textAutoResize = 'NONE';
+summaryNode.y = headlineNode.y + 73 + 5;
+summaryNode.resize(459, 318);
+```
 
 ---
 
@@ -161,8 +160,8 @@ Once all 10 topics pass both overlap rules, output this instruction verbatim:
 ✅ **Text and spacing confirmed. Now fix the fonts in Figma:**
 
 1. Open the **Font Switcher** plugin (or go to **Edit → Find/Replace Fonts**)
-2. Replace **Inter Bold → Brilliant Cut Pro Medium** (headlines + category names)
-3. Replace **Roboto Regular → Fancy Cut Pro Regular** (summaries)
+2. Replace **Outfit Medium → Brilliant Cut Pro Medium** (headlines + category names)
+3. Replace **Karla Regular → Fancy Cut Pro Regular** (summaries)
 
 This takes ~30 seconds. Let me know once done.
 

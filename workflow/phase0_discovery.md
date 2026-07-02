@@ -1,10 +1,87 @@
-# Phase 0 — Autonomous News Discovery
+# Phase 0 — News Discovery and Input Preparation
 
-**Run Phase 0 at the start of each month, before any input file exists. Skip Phase 0 if the user provides their own `input_data_[month].txt` directly.**
+Phase 0 always runs before Phase 1. Its job is to produce a verified, confirmed `input_data_[month].txt` that the user has explicitly approved.
+
+Read the user's input first, then route to the correct stream:
+
+| What the user provides | Stream |
+|---|---|
+| Only a month name — no topics | **Stream B** — Autonomous Discovery |
+| A list of topic names or descriptions (no URLs) | **Stream A** — Manual Input |
+| A list of topic names with some or all URLs already included | **Stream A** — Manual Input (skip the search step for topics that already have URLs; verify all) |
+
+In all cases, Phase 0 ends with a confirmation table and explicit user approval before Phase 1 begins.
 
 ---
 
-## Step 1 — Load Editorial Context
+## Stream A — Manual Input (User Provides Topic Names)
+
+Use this stream when the user provides a list of topic names or descriptions, with or without narratives, but without source URLs.
+
+**Do not run Autonomous Search. Go directly to this checklist.**
+
+### Todo List
+
+1. **Parse the user's topic list.** Extract for each topic:
+   - Topic name or description
+   - `Narrative:` angle (if provided)
+   - `No summary.` flag (if provided)
+   - Do not expect or infer categories — categories are assigned in Phase 1, not here.
+
+2. **Search for source URLs in parallel.** For each topic, run a web search and find the 1–3 best source URLs. Prefer major outlets (TechCrunch, CNBC, Bloomberg, The Verge, Reuters, BBC) with direct, specific coverage of the exact event described.
+
+3. **Verify each story.** Confirm the story is real and the key facts match the user's description. Only flag a topic if the search results are evidently and clearly about something different — a different company, a different event, or no coverage at all. Minor variations in framing or detail are not a reason to flag.
+
+4. **Build `[month]/input_data_[month].txt`.** Write the completed file using the standard format — URLs under each topic, `Narrative:` and `No summary.` flags carried over from user input. Do not add categories to the file.
+
+5. **Show a confirmation table** in the conversation:
+
+   ```
+   | # | Story | URLs found | Notes |
+   |---|---|---|---|
+   | 1 | Musk OpenAI lawsuit | ✅ 2 sources | — |
+   | 2 | SubQ transformer challenger | ✅ 2 sources | — |
+   | 3 | Ferrari Luce EV backlash | ⚠️ 0 sources | Could not verify — story not found |
+   ...
+   ```
+
+6. **Wait for explicit approval.** End with:
+   > "Input file saved at `[month]/input_data_[month].txt`. Review the sources above — reply with any corrections or replacements, then say **'Ready for Phase 1'** to continue."
+   
+   Do not begin Phase 1 until the user explicitly approves.
+
+---
+
+## Stream B — Autonomous Discovery (No User Topics Provided)
+
+Use this stream when the user provides only a target month and no topic list.
+
+### Todo List
+
+1. **Load editorial context** — read both reference newsletter `.md` files and the `## Phase 0 — Editorial Intelligence` section of `CLAUDE.md` to calibrate which story archetypes, categories, and angles have worked before.
+
+2. **Search for candidates** — run 8–12 targeted web searches, one per category area (AI models, company strategy, regulation, creative, quirky/niche, investment, space/deep tech, workforce). Also search trending X/tech-Twitter for niche stories. Collect at least 20 distinct stories.
+
+3. **Score and filter** — apply editorial patterns from Step 1. Keep the top ~20. Discard anything that fails the filters (e.g. "AI discovers science thing" without a major brand, pure stat without a human consequence, multi-company roundup without a single focal point).
+
+4. **Compile `[month]/phase0_candidates.md`** — write one entry per candidate (KEEP/REJECT/MODIFY status, category suggestion, format, sources, why it belongs). Append a blank `## Your Additional Topics` section at the end.
+
+5. **Present to user** — show a summary count and ask them to review the doc, update statuses, and add any topics they want in the Additional Topics section. Wait for: **"Phase 0 ready — please process `[month]/phase0_candidates.md`"**
+
+6. **Process user additions** — for each line in `Your Additional Topics`, search for 1–3 source URLs, write a full candidate entry, and append it to the doc. Confirm additions to the user.
+
+7. **Run feedback loops** — once the user is done with the doc:
+   - *Modification loop:* apply all `Status: MODIFY` notes (combine entries, add narrative angles) before building the input file.
+   - *Rejection loop:* synthesize patterns from all `Status: REJECT` entries and append a `### [Month] — Topics to deprioritise` block + Rejection Log table to `CLAUDE.md`.
+   - *Positive reinforcement loop:* synthesize what user-added topics reveal about editorial priorities and append a `### [Month] — What user additions reveal` block to `CLAUDE.md`.
+
+8. **Build `[month]/input_data_[month].txt`** — write the filled input file from all KEEP entries (URLs, `Narrative:` angles, `No summary.` flags). Do not add categories to the file.
+
+9. **Show confirmation table and wait for approval** — present the table (story label, URLs found, notes) and do not begin Phase 1 until the user explicitly approves.
+
+---
+
+### Step 1 — Load Editorial Context
 
 Before searching, read the following to calibrate story selection:
 
@@ -19,7 +96,7 @@ From these, derive:
 
 ---
 
-## Step 2 — Search for Candidates
+### Step 2 — Search for Candidates
 
 Run targeted searches covering the full target month. Search across the newsletter's core category areas:
 
@@ -40,7 +117,7 @@ Collect raw candidates until you have at least 20 distinct stories. Deduplicate 
 
 ---
 
-## Step 3 — Score and Filter
+### Step 3 — Score and Filter
 
 Apply the editorial patterns loaded in Step 1. For each candidate, assess:
 
@@ -62,7 +139,7 @@ Discard candidates that fail clearly. Keep the top ~20 ranked by fit.
 
 ---
 
-## Step 4 — Compile Candidates Doc
+### Step 4 — Compile Candidates Doc
 
 Save as `[month]/phase0_candidates.md`.
 
@@ -96,7 +173,7 @@ Show the user a summary once the doc is ready:
 
 ---
 
-## Step 5 — Additional Topics (User-Directed Search)
+### Step 5 — Additional Topics (User-Directed Search)
 
 The `Your Additional Topics` section at the bottom of `phase0_candidates.md` is where the user can write topic descriptions or headlines they want covered — without needing to find articles themselves.
 
@@ -117,7 +194,7 @@ When the user adds entries here, treat each line as a search prompt: find the be
 
 ---
 
-## Step 6 — Feedback Loop
+### Step 6 — Feedback Loop
 
 Once the user confirms they are done with the doc, run both feedback loops:
 
@@ -151,61 +228,46 @@ This builds a two-sided signal in `CLAUDE.md`: rejections teach what to avoid, u
 
 ---
 
-## Step 7 — Generate Phase 1 Input Template
+### Step 7 — Generate Filled Phase 1 Input File
 
-Once all modifications, additional topics, and feedback loops are complete, generate a blank `[month]/input_data_[month].txt` with 10 empty topic slots:
+Once all modifications, additional topics, and feedback loops are complete, generate the filled `[month]/input_data_[month].txt`.
+
+**For each topic that already has source URLs** (from the candidates doc or user-provided): write them as-is.
+
+**For each topic that has only a name or description** (no URLs yet):
+1. Run a web search for that topic.
+2. Find the 1–3 best source URLs — prefer major outlets (TechCrunch, CNBC, Bloomberg, The Verge, Reuters) with direct coverage of the specific event.
+3. Verify the story is real and the key facts broadly match what the user described. Only flag if the results are evidently about something different — a different company, a different event, or no coverage found at all. Do not flag for minor framing differences. Leave the URL slot empty for any flagged topic rather than filling in an unrelated article.
+4. Write the URLs into the topic entry.
+
+**Output format** — each topic uses the standard input file format. Include any `Narrative:` angle and `No summary.` flag carried over from the candidates doc or user input:
 
 ```
 Topic 1:
-- 
-Narrative: 
+- https://...
+- https://...
+Narrative: [angle if present]
 
 Topic 2:
-- 
-Narrative: 
-
-Topic 3:
-- 
-Narrative: 
-
-Topic 4:
-- 
-Narrative: 
-
-Topic 5:
-- 
-Narrative: 
-
-Topic 6:
-- 
-Narrative: 
-
-Topic 7:
-- 
-Narrative: 
-
-Topic 8:
-- 
-Narrative: 
-
-Topic 9:
-- 
-Narrative: 
-
-Topic 10:
-- 
-Narrative: 
+- https://...
+No summary.
 ```
 
-Then output this message verbatim:
+Save the completed file at `[month]/input_data_[month].txt`.
 
----
-✅ **Phase 0 complete.**
+Then present a confirmation table in the conversation:
 
-A blank input template has been created at `[month]/input_data_[month].txt`.
+```
+| # | Story | URLs found | Notes |
+|---|---|---|---|
+| 1 | Musk OpenAI lawsuit | ✅ 2 sources | — |
+| 2 | SubQ transformer challenger | ✅ 2 sources | — |
+| 3 | Ferrari Luce EV backlash | ✅ 2 sources | — |
+...
+```
 
-Fill in your 10 topics — paste links under each `Topic N:` and add a `Narrative:` angle if you have one. Add `No summary.` instead of a narrative for headline-only topics. Use `phase0_candidates.md` as a reference if helpful.
+Follow the table with:
 
-When ready, come back and say **"Ready for Phase 1"** and I'll generate the headlines, summaries, and categories.
+> "Input file saved at `[month]/input_data_[month].txt`. Review the sources above — reply with any corrections or replacements, then say **'Ready for Phase 1'** to continue."
 
----
+Do not begin Phase 1 until the user explicitly approves.
