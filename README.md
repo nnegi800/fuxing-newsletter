@@ -57,6 +57,6 @@ No summary.
 CLAUDE.md               AI instructions (role, input format, workflow)
 phase0–3_*.md           Detailed rules for each phase
 reference_materials/    Published newsletters + card PNGs for style calibration
-web-app/index.html      Browser UI (shown above)
+ui/index.html           Browser UI (shown above)
 [Month]/                Per-issue outputs and generated images
 ```

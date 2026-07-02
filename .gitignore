@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Generated newsletter images (regenerated per issue, kept off GitHub)
+**/images/
+**/final_output/
+**/final output/
