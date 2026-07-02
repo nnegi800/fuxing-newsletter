@@ -1,6 +1,6 @@
 # Fuxing Newsletter Generator
 
-![Fuxing Newsletter Generator](preview.png)
+![Fuxing Newsletter Generator](docs/preview.png)
 
 An AI-assisted workflow that turns a list of article links into finished, Figma-ready cards for Cartier's monthly Fuxing newsletter.
 
