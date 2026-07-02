@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fuxing Newsletter Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .stream-box {
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .pulse-dot { animation: pulse 1.5s cubic-bezier(0.4,0,0.6,1) infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .fade-in { animation: fadeIn .25s ease-out; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .char-ok { color: #16a34a; }
+    .char-warn { color: #ca8a04; }
+    .char-over { color: #dc2626; }
+    textarea { resize: vertical; }
+    .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; }
+    .tab-locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  </style>
+</head>
+
+<!-- ─────────────────────────────────────────────────
+     EMBEDDED PHASE CONTENT (hidden textareas)
+     Using textarea so no HTML/JS escaping needed.
+     Only </textarea> would break parsing — not present in any phase file.
+──────────────────────────────────────────────────── -->
+
+<textarea hidden id="phase1-instructions">
+# Phase 1 — Newsletter Generation
+
+Execute steps in order for each topic. Do not skip or reorder.
+
+## Step 1 — Parse Input File
+Read the provided input and extract for each topic:
+- All links
+- Narrative angle (if present: `Narrative: [text]`)
+- Whether it is marked `No summary.`
+Topics with neither flag are treated as standard (headline + summary).
+
+## Step 2 — Fetch & Read
+For each topic, use the provided URLs and any supplementary article content the user has pasted. If no content is pasted and a URL is provided, draw on your training knowledge about that story. If a topic has multiple links, synthesize all into one unified set of information.
+
+## Step 3 — Generate Headline
+Target length: STRICTLY within range 90-110 characters. For `No summary.` topics: STRICTLY within range 160-180 characters.
+Style rules:
+- ALL CAPS with a dot at the end.
+- No em dashes (—). Use a colon or comma instead.
+- One key statistic at most per headline.
+- Capture the story angle — do not front-load data.
+- Multi-link topics: lead with the overarching theme. Format: `OVERARCHING THEME: SPECIFIC DETAIL.`
+`No summary.` topics must be self-contained (MAXIMUM 180 chars).
+
+## Step 4 — Generate Summary
+SKIP entirely for `No summary.` topics.
+Target length: STRICTLY within range 500-550 characters. Strictly NEVER exceed 550.
+Style rules:
+- Explain from scratch — no assumed knowledge.
+- No semicolons. Complete sentences only.
+- Start by restating what the company/product is before giving details.
+- Include at least one concrete statistic.
+- Use a transition phrase ("The broader ripple...", "The result...", "What makes this unusual...").
+- No jargon. Write for a technically literate luxury-brand audience.
+
+## Step 5 — Assign Category
+Use ONLY categories that appear in the reference data below. Do not invent new categories.
+Assign based on the primary story angle, not the industry.
+
+## Reference — March 2026 Newsletter
+SPACE: Artemis II moon mission.
+FOCUS_AI: Anthropic Claude releases + data leak; China confines Meta AI founders.
+RETHINKING_TECH: AGI narrative — Demis Hassabis Einstein Test.
+EMPLOYEE_OF_THE_MONTH: Sundar Pichai $692M pay package (no summary, horizontal).
+INVESTMENT_WATCH: Japan toilet maker Toto jumps 40%; Netflix/Warner Bros/InterPositive.
+TECHNOLOGIC: Pentagon/Anthropic/OpenAI DoD contract; Block 40% layoffs; ByteDance Seedance 2.0.
+AI_ART: Refik Anadol AI museum (no summary, horizontal).
+REFORMING_TECH: Man uses ChatGPT to design dog cancer vaccine (no summary, horizontal).
+
+## Reference — April 2026 Newsletter
+FOCUS_AI: SpaceX/Cursor $60B deal; Anthropic Claude Design vs Figma.
+EMPLOYEE_OF_THE_MONTH: Tim Cook steps down, John Ternus named Apple CEO.
+TECHNOLOGIC: Nvidia fracturing — Google TPU 8t/8i, Anthropic $50B to Google, Meta/Broadcom; Sony Project Ace robot beats pro ping-pong players.
+RETHINKING_TECH: China AI gap collapses to 2.7%, blocks Meta/Manus acquisition.
+WORD_OF_THE_MONTH: Harness Engineering — new discipline replacing prompt/context engineering (no summary, horizontal).
+INVESTMENT_WATCH: Q1 2026 VC record $330.9B + USVC opens OpenAI/Anthropic access from $500; AI energy demand — nuclear/geothermal/space data centers.
+TECH_ACQUISITIONS: OpenAI acquires TBPN podcast (no summary, horizontal).
+</textarea>
+
+<textarea hidden id="phase0-instructions">
+# Phase 0 — Autonomous News Discovery
+
+You are searching for newsletter candidates for the Cartier Digital Innovation Team's Fuxing newsletter. The newsletter covers AI advancements, emerging tech, industry shifts, major company investments, and quirky/niche stories.
+
+## Editorial filters (do not include stories that fail these):
+- Skip startups or AI companies without mainstream name recognition
+- Policy/regulation stories only if a specific major company has visibly acted on them
+- Open source model releases by less-known names: skip
+- AI in creative fields needs a specific named company or moment
+- Quirky science stories need a luxury, design, or tech industry connection
+- Multi-company roundups: pick one person or one company
+- "AI discovers science thing" stories: skip unless genuinely unprecedented
+- Multi-thread convergence is strong: three independent developments pointing to the same shift
+- "Platform eats its partner" is a strong angle
+- Paradigm shift in how AI is used works well as a Word of the Month no-summary card
+
+## Story pairing principle:
+A standalone industry stat is rarely enough. Pair it with a specific controversial/trending development. Formula: broad industry stat + specific human consequence.
+
+## Categories used in past newsletters:
+FOCUS_AI, TECHNOLOGIC, RETHINKING_TECH, EMPLOYEE_OF_THE_MONTH, INVESTMENT_WATCH, TECH_ACQUISITIONS, WORD_OF_THE_MONTH, AI_ART, REFORMING_TECH, SPACE
+
+## Output format — use EXACTLY this structure for each candidate:
+<candidate id="N">
+<status>KEEP</status>
+<category>CATEGORY_NAME</category>
+<format>standard</format>
+<headline>Short descriptive headline for this story (not the newsletter headline — just a label)</headline>
+<sources>[Article Title — Publisher](https://full-article-url) | [Article Title — Publisher](https://full-article-url)</sources>
+<published>Month Year</published>
+<why>One short paragraph explaining why this fits the newsletter — which archetype it matches, what makes the angle non-obvious, why the Cartier DI audience would care.</why>
+</candidate>
+
+For <sources>, include 1-3 real article links in Markdown format [Article Title — Publisher](url), separated by " | ". Use the real headline and publication name as the link text for each source.
+
+Generate 15-20 candidates. Use your training knowledge for the requested month/year. If the month is after your training cutoff, generate plausible candidates based on trends you can extrapolate, and note which are estimated.
+</textarea>
+
+<textarea hidden id="phase2-instructions">
+# Phase 2 — Image Prompt Generation
+
+For each topic from the approved Phase 1 output, generate one image prompt.
+
+## Rules:
+1. `No summary.` topics → HORIZONTAL (16:9 ratio)
+2. All other topics → VERTICAL (9:16 ratio)
+3. Extract company logo(s) from the headline — any brand or organization named
+4. Extract the main visual theme from the headline
+5. CRITICAL — no real person names anywhere in the prompt. Replace with role descriptions:
+   - "Tim Cook" → "a longtime tech CEO"
+   - "Elon Musk" → "a tech billionaire"
+   - "John Ternus" → "a hardware engineer turned CEO"
+   - "Sam Altman" → "an OpenAI executive"
+   Company names and logos ARE fine.
+
+## Prompt templates:
+
+VERTICAL:
+"I am creating a newsletter that is a monthly overview of the most important digital news. Help me create a square thumbnail picture evoking the following story. The title is: [HEADLINE]. Please follow the artistic style of [ART_STYLE] art. Do not put any text in the final image. The format of the final picture should be VERTICAL (9:16 ratio). Include company logo(s) ([LOGOS]) and the main theme ([THEME]) to emphasize the main topic of the article."
+
+HORIZONTAL:
+"I am creating a newsletter that is a monthly overview of the most important digital news. Help me create a square thumbnail picture evoking the following story. The title is: [HEADLINE]. Please follow the artistic style of [ART_STYLE] art. Do not put any text in the final image. The format of the final picture should be HORIZONTAL (16:9 ratio). Include company logo(s) ([LOGOS]) and the main theme ([THEME]) to emphasize the main topic of the article."
+
+## Output format — use EXACTLY this structure:
+<prompt id="N">
+<format>VERTICAL</format>
+<logos>Logo1, Logo2</logos>
+<theme>main visual concept</theme>
+<text>Full prompt text here</text>
+</prompt>
+</textarea>
+
+<textarea hidden id="phase3-guide">
+# Phase 3 — Figma Assembly Guide
+
+## Step 1 — Paste Images
+Ask the user to paste all images directly into the Figma canvas. Images should have numbers 1-10 in their names (e.g. image_1, img1, 1, photo_3). Confirm before proceeding.
+
+## Step 2 — Sort by Category, Clone Templates
+Sort topics by category (first appearance order). Within each category, maintain original relative order.
+
+Template selection:
+| Condition | Template |
+|---|---|
+| First of category + has summary + image left | Category_Vertical_Image_Left |
+| First of category + has summary + image right | Category_Vertical_Image_Right |
+| First of category + No summary | Category_Horizontal |
+| Non-first of category + has summary + image left | no_category_left_image |
+| Non-first of category + has summary + image right | no_category_right_image |
+
+Alternating image side: Category_Horizontal skips the alternation. Alternation continues across categories.
+
+## Step 3 — Transfer Images
+For each Topic_N: find source image by number, read imageHash from IMAGE fill, apply to `image` rectangle inside Topic_N, delete source node.
+
+## Step 4 — Set Text
+- headline layer → headline text in Inter Bold
+- summary layer → summary text in Roboto Regular
+- category_name layer → category label in Inter Bold
+- Set textAutoResize = 'HEIGHT' on all text nodes
+- Category_Horizontal: summary layer holds headline text, use Inter Bold
+- no_category_right_image: headline layer is named `title`
+
+## Step 5 — Check Overlap
+Rule 1: headlineNode.y + headlineNode.height must be ≤ summaryNode.y
+Rule 2: summaryNode.y + summaryNode.height must reach bottom of READ_STORY box (target, not just limit)
+Fix violations: shorten headline if R1 fails; extend or shorten summary to match READ_STORY bottom.
+
+## Step 6 — Background Image
+Use Newsletter_Backgound_Image_Whole node. Apply CROP fill to each topic's background rectangle:
+a = (cardWidth × imgHeight) / (imgWidth × TOTAL_SPAN)
+c = (1 - a) / 2
+d = topicHeight / TOTAL_SPAN
+f = topicY / TOTAL_SPAN
+imageTransform = [[a, 0, c], [0, d, f]]
+opacity = 0.42
+
+## Step 7 — Link Annotations
+Add text node to the right of each Topic_N with the first read-more URL.
+Position: x = topic.x + topic.width + 30, y = topic.y
+Font: Inter Regular 14px, color #0000EE
+Set hyperlink. Name each node link_Topic_N.
+
+## Step 8 — Header & Footer
+Clone Header node, place above Topic_1 (zero gap).
+Clone Footer node, place below last topic (zero gap).
+Name clones Header_Final and Footer_Final.
+
+## Step 9 — Font Swap (manual)
+Replace Inter Bold → Brilliant Cut Pro Medium (headlines + categories)
+Replace Roboto Regular → Fancy Cut Pro Regular (summaries)
+Use Figma Font Switcher plugin or Edit → Find/Replace Fonts.
+
+## Step 10 — Export Setup
+Group Header_Final with Topic_1 frame, name group Topic_1.
+Group Footer_Final with last topic frame.
+Set PNG 2x export on all Topic_N frames.
+Select all → Export from right panel.
+</textarea>
+
+<!-- ─────────────────────────────────────────────────
+     MAIN APP
+──────────────────────────────────────────────────── -->
+
+<body class="bg-white text-gray-900 min-h-screen" x-data="app()" x-cloak>
+
+  <!-- SETTINGS MODAL -->
+  <div x-show="showSettings" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" @click.self="showSettings=false">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 fade-in">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-semibold text-gray-900">Settings</h2>
+        <button @click="showSettings=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <!-- AI API Key -->
+      <label class="block text-xs font-medium text-gray-600 mb-1">AI API Key</label>
+      <div class="flex gap-2 mb-1">
+        <input type="password" x-model="apiKey" @change="saveSettings()"
+          placeholder="sk-ant-... or sk-..."
+          class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button @click="apiKey=''; saveSettings(); showToast('API key cleared')"
+          class="text-xs text-gray-500 hover:text-red-500 px-2">Clear</button>
+      </div>
+      <p class="text-xs text-gray-400 mb-4">Anthropic (<code>sk-ant-...</code>), OpenAI (<code>sk-...</code>), and Perplexity (<code>pplx-...</code>) are auto-detected. For any other provider, fill in Base URL and Model below.</p>
+
+      <!-- Optional: Custom base URL -->
+      <label class="block text-xs font-medium text-gray-600 mb-1">Base URL <span class="text-gray-400 font-normal">(optional — for DeepSeek, Qwen, Zhipu, etc.)</span></label>
+      <input type="text" x-model="customBaseURL" @change="saveSettings()"
+        placeholder="e.g. https://api.deepseek.com"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+
+      <!-- Optional: Custom model -->
+      <label class="block text-xs font-medium text-gray-600 mb-1">Model <span class="text-gray-400 font-normal">(optional — overrides the default for your provider)</span></label>
+      <input type="text" x-model="customModel" @change="saveSettings()"
+        placeholder="e.g. deepseek-chat, qwen-max, glm-4"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1">
+      <p class="text-xs text-gray-400 mb-4">Any OpenAI-compatible API works. Phase 0 live web search requires Anthropic, OpenAI, or Perplexity — other providers will use the model's training knowledge for Phase 0.</p>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">Past months</label>
+      <div class="flex flex-wrap gap-2">
+        <template x-for="m in savedMonths" :key="m">
+          <button @click="switchMonth(m); showSettings=false"
+            class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:border-blue-400 hover:text-blue-600 capitalize"
+            x-text="m"></button>
+        </template>
+        <span x-show="savedMonths.length===0" class="text-xs text-gray-400">No saved months yet.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="bg-gray-900 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg fade-in pointer-events-none"
+        x-text="t.msg"></div>
+    </template>
+  </div>
+
+  <!-- HEADER -->
+  <header class="border-b border-gray-200 bg-white sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="font-semibold text-gray-900 tracking-tight">Fuxing</span>
+        <span class="text-gray-300">|</span>
+        <span class="text-sm text-gray-500">Newsletter Generator</span>
+        <!-- Month badge (shown when in phase view) -->
+        <template x-if="view==='phases'">
+          <span class="ml-2 text-xs font-medium bg-gray-100 text-gray-700 px-3 py-1 rounded-full capitalize"
+            x-text="currentMonth"></span>
+        </template>
+      </div>
+      <div class="flex items-center gap-3">
+        <template x-if="view==='phases'">
+          <button @click="view='welcome'" class="text-xs text-gray-500 hover:text-gray-700">← Change month</button>
+        </template>
+        <button @click="showSettings=true" class="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100" title="Settings">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════
+       WELCOME SCREEN
+  ═══════════════════════════════════════════════ -->
+  <div x-show="view==='welcome'" class="max-w-xl mx-auto px-6 pt-24 pb-16">
+    <h1 class="text-2xl font-semibold text-gray-900 mb-2">Welcome back.</h1>
+    <p class="text-gray-500 mb-8">Two ways to start your newsletter.</p>
+
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Which month?</label>
+      <input type="text" x-model="monthInput" @keydown.enter="beginMonth()"
+        placeholder="e.g. May"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-8">
+      <button @click="startWithDiscovery()"
+        :disabled="!monthInput.trim()"
+        class="flex flex-col items-start border border-gray-200 rounded-xl p-5 hover:border-blue-300 hover:bg-blue-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-left">
+        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <span class="text-sm font-medium text-gray-900 mb-1">A — Discover stories</span>
+        <span class="text-xs text-gray-500">Run Phase 0 — I'll search for candidates</span>
+      </button>
+
+      <label class="flex flex-col items-start border border-gray-200 rounded-xl p-5 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer text-left"
+        :class="monthInput.trim() ? '' : 'opacity-40 pointer-events-none'">
+        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+        </div>
+        <span class="text-sm font-medium text-gray-900 mb-1">B — Upload input file</span>
+        <span class="text-xs text-gray-500">Go straight to Phase 1</span>
+        <input type="file" accept=".txt" class="hidden" @change="handleInputUpload($event)">
+      </label>
+    </div>
+
+    <!-- Past months -->
+    <template x-if="savedMonths.length > 0">
+      <div>
+        <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide">Resume</p>
+        <div class="flex flex-wrap gap-2">
+          <template x-for="m in savedMonths" :key="m">
+            <button @click="switchMonth(m)"
+              class="text-sm px-4 py-1.5 rounded-full border border-gray-200 hover:border-blue-400 hover:text-blue-600 capitalize transition-colors"
+              x-text="m + ' →'"></button>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PHASE VIEW
+  ═══════════════════════════════════════════════ -->
+  <div x-show="view==='phases'" class="max-w-6xl mx-auto px-6 pt-6 pb-16">
+
+    <!-- Phase tabs -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="flex gap-0">
+        <template x-for="(label, idx) in ['Phase 0 — Discovery','Phase 1 — Newsletter','Phase 2 — Images','Phase 3 — Figma']" :key="idx">
+          <button
+            @click="phaseTabClick(idx)"
+            :class="{
+              'tab-active': activePhase===idx,
+              'tab-locked': !canAccessPhase(idx)
+            }"
+            class="px-5 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors -mb-px">
+            <span x-text="label"></span>
+            <!-- Status dot -->
+            <span x-show="phaseStatus(idx)==='approved'" class="ml-2 inline-block w-2 h-2 rounded-full bg-green-500"></span>
+            <span x-show="phaseStatus(idx)==='streaming'" class="ml-2 inline-block w-2 h-2 rounded-full bg-blue-500 pulse-dot"></span>
+            <span x-show="phaseStatus(idx)==='ready'" class="ml-2 inline-block w-2 h-2 rounded-full bg-yellow-400"></span>
+          </button>
+        </template>
+      </nav>
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         PHASE 0 — DISCOVERY
+    ──────────────────────────────────────────────── -->
+    <div x-show="activePhase===0" class="fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Story Discovery</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Uses your provider's built-in web search (Anthropic, OpenAI, or Perplexity) to find real stories from this month.</p>
+        </div>
+        <div class="flex gap-2">
+          <button @click="activePhase=1; phases[0].skipped=true" class="text-sm text-gray-500 hover:text-gray-700 px-4 py-2 border border-gray-200 rounded-lg">
+            Skip → Phase 1
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-[35fr_65fr] gap-6 items-start">
+        <!-- Left: controls -->
+        <div>
+          <div class="bg-gray-50 rounded-xl p-4 mb-4">
+            <button @click="runPhase0()"
+              :disabled="phases[0].status==='streaming' || !apiKey"
+              class="w-full bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mb-2">
+              <span x-show="phases[0].status!=='streaming'">Discover Candidates</span>
+              <span x-show="phases[0].status==='streaming'" class="flex items-center justify-center gap-2">
+                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                Searching...
+              </span>
+            </button>
+            <p class="text-xs text-gray-400 text-center">Regenerates the full candidate list for the month.</p>
+            <p x-show="!apiKey" class="text-xs text-red-500 text-center mt-1">Add your AI API key in Settings first</p>
+          </div>
+
+          <!-- Add your own topics (own LLM call, appends to list) -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-xs font-medium text-gray-600 mb-2">Add your own topics</label>
+            <textarea x-model="phases[0].additionalTopics" rows="5"
+              placeholder="List topics in 1. 2. 3. format, e.g.&#10;1. SpaceX prices the largest IPO ever&#10;2. Apple overhauls Siri at WWDC&#10;3. ..."
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"></textarea>
+            <button @click="addOwnTopics()"
+              :disabled="phases[0].addingTopics || !phases[0].additionalTopics.trim() || !apiKey"
+              class="mt-2 w-full bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <svg x-show="phases[0].addingTopics" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+              <span x-text="phases[0].addingTopics ? 'Adding...' : 'Add to candidates →'"></span>
+            </button>
+            <p class="text-xs text-gray-400 mt-1.5">The AI finds sources and appends these to the end of the list — the other candidates are left untouched.</p>
+            <div x-show="phases[0].addingTopics" class="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+              <div id="p0-add-stream" class="stream-box p-3 h-32 overflow-y-auto text-gray-600 bg-white text-[11px]"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: stream output / candidate cards -->
+        <div>
+          <template x-if="phases[0].status==='idle' && phases[0].candidates.length===0">
+            <div class="h-64 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 text-sm">
+              Candidates will appear here
+            </div>
+          </template>
+
+          <!-- AI streaming (search + candidate generation) -->
+          <div x-show="phases[0].status==='streaming' && phases[0].aiStreaming" class="border border-gray-200 rounded-xl overflow-hidden">
+            <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+              <span class="w-2 h-2 bg-blue-500 rounded-full pulse-dot"></span>
+              <span class="text-xs text-gray-500">Searching the web and generating candidates...</span>
+            </div>
+            <div id="p0-stream" class="stream-box p-4 h-48 overflow-y-auto text-gray-700 bg-white"></div>
+          </div>
+
+          <!-- Candidate cards -->
+          <template x-if="phases[0].candidates.length > 0">
+            <div class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-600">
+                  <span class="font-medium text-green-600" x-text="phases[0].candidates.filter(c=>c.status==='keep').length"></span>
+                  keep · <span x-text="phases[0].candidates.filter(c=>c.status==='modify').length"></span> modify · <span x-text="phases[0].candidates.filter(c=>c.status==='reject').length"></span> reject
+                </span>
+                <button @click="processPhase0Candidates()"
+                  :disabled="phases[0].candidates.filter(c=>c.status==='keep'||c.status==='modify').length===0"
+                  class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-40"
+                  x-text="phases[0].inputDataContent ? 'Re-process → input_data.txt' : 'Process → input_data.txt'">
+                </button>
+              </div>
+
+              <template x-for="(c, i) in phases[0].candidates" :key="i">
+                <div class="border rounded-xl p-4 bg-white fade-in transition-colors"
+                  :class="c.regenerating ? 'border-blue-300 ring-2 ring-blue-100' : 'border-gray-200'">
+                  <div class="flex items-start justify-between gap-3 mb-2">
+                    <div class="flex-1">
+                      <span class="text-xs font-mono font-bold text-gray-300 mr-1">#<span x-text="i+1"></span></span>
+                      <span class="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded mr-2" x-text="c.category"></span>
+                      <span x-show="c.format==='nosummary'" class="text-xs italic text-gray-400">No summary</span>
+                    </div>
+                    <!-- Status toggle -->
+                    <div class="flex gap-1 shrink-0">
+                      <button @click="c.status='keep'"
+                        :class="c.status==='keep'?'bg-green-100 text-green-700 border-green-300':'border-gray-200 text-gray-400'"
+                        class="text-xs border px-2 py-0.5 rounded">Keep</button>
+                      <button @click="c.status='reject'"
+                        :class="c.status==='reject'?'bg-red-100 text-red-700 border-red-300':'border-gray-200 text-gray-400'"
+                        class="text-xs border px-2 py-0.5 rounded">Reject</button>
+                      <button @click="c.status='modify'"
+                        :class="c.status==='modify'?'bg-yellow-100 text-yellow-700 border-yellow-300':'border-gray-200 text-gray-400'"
+                        class="text-xs border px-2 py-0.5 rounded">Modify</button>
+                    </div>
+                  </div>
+                  <p class="text-sm font-medium text-gray-800 mb-1" x-text="c.headline"></p>
+                  <p class="text-xs text-gray-500 mb-2" x-text="c.why"></p>
+                  <!-- Sources as links -->
+                  <div class="flex flex-wrap gap-x-3 gap-y-1">
+                    <template x-for="(s, si) in parseSources(c.sources)" :key="si">
+                      <a :href="s.url" target="_blank" rel="noopener noreferrer"
+                        class="text-xs text-blue-500 hover:text-blue-700 hover:underline truncate max-w-[16rem]"
+                        x-text="s.title"></a>
+                    </template>
+                  </div>
+                  <!-- Modify → AI regenerate -->
+                  <template x-if="c.status==='modify'">
+                    <div class="mt-2 space-y-2">
+                      <textarea x-model="c.note" rows="2"
+                        placeholder="Describe how to change this story — e.g. 'find a more recent angle', 'reframe around the funding number', 'make it a No-summary card'..."
+                        class="w-full text-xs border border-yellow-200 rounded-lg px-2 py-1.5 focus:outline-none bg-yellow-50"></textarea>
+                      <button @click="regenerateCandidate(i)"
+                        :disabled="!c.note || c.regenerating || !apiKey"
+                        class="text-xs bg-yellow-600 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+                        <svg x-show="c.regenerating" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        <span x-text="c.regenerating ? 'Regenerating...' : 'Regenerate with AI'"></span>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+
+        </div>
+      </div>
+
+      <!-- Download after processing — full width across both columns -->
+      <template x-if="phases[0].inputDataContent">
+        <div class="mt-6 p-5 bg-green-50 border border-green-200 rounded-xl fade-in">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <p class="text-sm text-green-800 font-medium flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              input_data_<span x-text="currentMonth"></span>.txt ready — <span x-text="phases[0].candidates.filter(c=>c.status==='keep'||c.status==='modify').length"></span> topics
+            </p>
+            <div class="flex gap-2">
+              <button @click="downloadFile(phases[0].inputDataContent, 'input_data_'+currentMonth+'.txt')"
+                class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Download .txt</button>
+              <button @click="phases[1].inputData=phases[0].inputDataContent; activePhase=1; showToast('Input data loaded into Phase 1')"
+                class="text-sm border border-green-300 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100">Use in Phase 1 →</button>
+            </div>
+          </div>
+          <pre class="text-xs bg-white border border-green-100 rounded-lg p-3 overflow-auto max-h-60 stream-box text-gray-600" x-text="phases[0].inputDataContent"></pre>
+        </div>
+      </template>
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         PHASE 1 — NEWSLETTER GENERATION
+    ──────────────────────────────────────────────── -->
+    <div x-show="activePhase===1" class="fade-in">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Newsletter Generation</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Generate headlines, summaries, and categories for all 10 topics.</p>
+        </div>
+        <div class="flex gap-2">
+          <template x-if="phases[1].topics.length > 0">
+            <button @click="downloadPhase1()"
+              class="text-sm border border-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50">
+              ↓ Download .md
+            </button>
+          </template>
+          <template x-if="phases[1].topics.length > 0 && phases[1].status!=='approved'">
+            <button @click="approvePhase1()"
+              class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              Approve Phase 1 →
+            </button>
+          </template>
+          <template x-if="phases[1].status==='approved'">
+            <span class="text-sm text-green-600 font-medium flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Approved
+            </span>
+          </template>
+        </div>
+      </div>
+
+      <!-- Input section (upload or auto-filled) -->
+      <template x-if="!phases[1].inputData">
+        <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mb-6">
+          <p class="text-sm text-gray-500 mb-3">Upload your <code class="bg-gray-100 px-1 rounded">input_data_<span x-text="currentMonth"></span>.txt</code> file</p>
+          <label class="cursor-pointer inline-block bg-blue-600 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-blue-700">
+            Choose file
+            <input type="file" accept=".txt" class="hidden" @change="handleInputUpload($event)">
+          </label>
+          <p class="text-xs text-gray-400 mt-3">Or complete Phase 0 first to auto-generate this file.</p>
+        </div>
+      </template>
+
+      <!-- Input loaded confirmation + topics preview -->
+      <template x-if="phases[1].inputData">
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span class="text-sm font-medium text-gray-800">input_data loaded — <span x-text="countInputTopics()"></span> topics</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <button @click="phases[1].showInput=!phases[1].showInput" class="text-xs text-gray-400 hover:text-gray-600">
+                <span x-text="phases[1].showInput?'Hide input':'Show input'"></span>
+              </button>
+              <label class="cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-black px-3 py-1.5 rounded-lg">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Replace file
+                <input type="file" accept=".txt" class="hidden" @change="handleInputUpload($event)">
+              </label>
+            </div>
+          </div>
+
+          <!-- Input data preview (shown by default, collapsible) -->
+          <pre x-show="phases[1].showInput"
+            class="text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-auto max-h-48 stream-box text-gray-600"
+            x-text="phases[1].inputData"></pre>
+
+          <!-- Generate button -->
+          <div class="mt-4">
+            <button @click="runPhase1()"
+              :disabled="phases[1].status==='streaming' || !apiKey"
+              class="bg-blue-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span x-show="phases[1].status!=='streaming'">
+                <span x-show="phases[1].topics.length===0">Generate Newsletter</span>
+                <span x-show="phases[1].topics.length>0">Regenerate</span>
+              </span>
+              <span x-show="phases[1].status==='streaming'" class="flex items-center gap-2">
+                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                Generating...
+              </span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Streaming output -->
+      <template x-if="phases[1].status==='streaming' || (phases[1].rawOutput && phases[1].topics.length===0)">
+        <div class="border border-gray-200 rounded-xl overflow-hidden mb-6">
+          <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+            <span x-show="phases[1].status==='streaming'" class="w-2 h-2 bg-blue-500 rounded-full pulse-dot"></span>
+            <span x-show="phases[1].status!=='streaming'" class="w-2 h-2 bg-gray-400 rounded-full"></span>
+            <span class="text-xs text-gray-500">
+              <span x-show="phases[1].status==='streaming'">Generating...</span>
+              <span x-show="phases[1].status!=='streaming'">Raw output</span>
+            </span>
+          </div>
+          <div id="p1-stream" class="stream-box p-4 h-64 overflow-y-auto text-gray-700 bg-white" x-text="phases[1].rawOutput"></div>
+        </div>
+      </template>
+
+      <!-- Topic editor cards -->
+      <template x-if="phases[1].topics.length > 0">
+        <div class="flex gap-5 items-start">
+
+          <!-- Scrollable topic cards -->
+          <div class="flex-1 min-w-0 space-y-4">
+            <p class="text-sm font-medium text-gray-700">Edit topics</p>
+            <template x-for="(topic, i) in phases[1].topics" :key="i">
+              <div :id="'topic-card-'+i" class="border rounded-xl p-5 bg-white fade-in transition-colors"
+              :class="dragOverIndex===i && dragIndex!==i ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-200'"
+              draggable="true"
+              @dragstart="onDragStart(i)"
+              @dragover.prevent="onDragOver(i)"
+              @drop.prevent="onDrop(i)"
+              @dragend="onDragEnd()">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-gray-300 cursor-grab select-none" title="Drag to reorder">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><circle cx="7" cy="4" r="1.5"/><circle cx="13" cy="4" r="1.5"/><circle cx="7" cy="10" r="1.5"/><circle cx="13" cy="10" r="1.5"/><circle cx="7" cy="16" r="1.5"/><circle cx="13" cy="16" r="1.5"/></svg>
+                </span>
+                <span class="text-xs font-medium text-gray-400">Topic <span x-text="i+1"></span></span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  :class="categoryColor(topic.category)"
+                  x-text="topic.category"></span>
+                <span x-show="!topic.hasSummary" class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">No summary</span>
+              </div>
+
+              <!-- Headline -->
+              <div class="mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-medium text-gray-500">Headline</label>
+                  <span class="text-xs font-mono"
+                    :class="topic.hasSummary ? (topic.headline.length<=110?'char-ok':topic.headline.length<=130?'char-warn':'char-over') : (topic.headline.length<=180?'char-ok':topic.headline.length<=200?'char-warn':'char-over')"
+                    x-text="topic.headline.length+(topic.hasSummary?'/110':'/180')"></span>
+                </div>
+                <textarea x-model="topic.headline" rows="2"
+                  class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase"
+                  @input="markPhase1Changed()"></textarea>
+              </div>
+
+              <!-- Summary (if applicable) -->
+              <template x-if="topic.hasSummary">
+                <div class="mb-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-xs font-medium text-gray-500">Summary</label>
+                    <span class="text-xs font-mono"
+                      :class="topic.summary.length<=550?'char-ok':topic.summary.length<=600?'char-warn':'char-over'"
+                      x-text="topic.summary.length+'/550'"></span>
+                  </div>
+                  <textarea x-model="topic.summary" rows="4"
+                    class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    @input="markPhase1Changed()"></textarea>
+                </div>
+              </template>
+
+              <!-- Category + Links -->
+              <div class="flex items-center gap-4">
+                <div class="flex-1">
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
+                  <select x-show="!topic.customCat && knownCategories.includes(topic.category)"
+                    @change="$event.target.value === '__OTHER__' ? (topic.customCat = true) : (topic.category = $event.target.value, markPhase1Changed())"
+                    class="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <template x-for="cat in knownCategories" :key="cat">
+                      <option :value="cat" :selected="cat === topic.category" x-text="cat"></option>
+                    </template>
+                    <option value="__OTHER__">Other (custom)...</option>
+                  </select>
+                  <div x-show="topic.customCat || !knownCategories.includes(topic.category)" class="flex gap-1.5">
+                    <input type="text" x-model="topic.category"
+                      @input="markPhase1Changed()"
+                      placeholder="Enter custom category..."
+                      class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button @click="topic.customCat = false; if(!knownCategories.includes(topic.category)){topic.category=knownCategories[0]}; markPhase1Changed()"
+                      class="text-xs text-gray-400 hover:text-gray-600 px-2 border border-gray-200 rounded-lg" title="Back to dropdown">↩</button>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Read more</label>
+                  <template x-if="topic.links[0]">
+                    <a :href="topic.links[0]" target="_blank" rel="noopener noreferrer"
+                      class="text-xs text-blue-500 hover:text-blue-700 hover:underline truncate block"
+                      x-text="topic.links[0]"></a>
+                  </template>
+                  <template x-if="!topic.links[0]">
+                    <p class="text-xs text-gray-400">—</p>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Per-topic AI edit -->
+              <div class="mt-3 border-t border-gray-100 pt-3">
+                <button @click="topic.showEdit = !topic.showEdit"
+                  class="text-xs text-gray-400 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                  </svg>
+                  <span x-text="topic.showEdit ? 'Cancel' : 'Edit with AI'"></span>
+                </button>
+                <template x-if="topic.showEdit">
+                  <div class="mt-2 space-y-2">
+                    <textarea x-model="topic.editInstruction" rows="2"
+                      placeholder="Describe what to change — e.g. 'make the summary more concise', 'rewrite the headline to focus on the financial angle'..."
+                      class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"></textarea>
+                    <button @click="regenerateTopic(i)"
+                      :disabled="!topic.editInstruction || topic.regenerating || !apiKey"
+                      class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+                      <svg x-show="topic.regenerating" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                      </svg>
+                      <span x-text="topic.regenerating ? 'Regenerating...' : 'Regenerate this topic'"></span>
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+          </div><!-- end scrollable cards -->
+
+          <!-- Sticky sidebar — topic overview + reorder -->
+          <div class="w-48 shrink-0 sticky top-20 self-start">
+            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Topics</p>
+              </div>
+              <div class="divide-y divide-gray-100">
+                <template x-for="(topic, j) in phases[1].topics" :key="'sb-'+j">
+                  <div class="flex items-start gap-1.5 px-2.5 py-2.5 hover:bg-gray-50 transition-colors group"
+                    :class="dragOverIndex===j && dragIndex!==j ? 'bg-blue-50' : ''"
+                    draggable="true"
+                    @dragstart="onDragStart(j)"
+                    @dragover.prevent="onDragOver(j)"
+                    @drop.prevent="onDrop(j)"
+                    @dragend="onDragEnd()">
+                    <span class="mt-0.5 text-gray-300 cursor-grab shrink-0 select-none group-hover:text-gray-400">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="7" cy="5" r="1.3"/><circle cx="13" cy="5" r="1.3"/><circle cx="7" cy="10" r="1.3"/><circle cx="13" cy="10" r="1.3"/><circle cx="7" cy="15" r="1.3"/><circle cx="13" cy="15" r="1.3"/></svg>
+                    </span>
+                    <span class="mt-0.5 text-[10px] font-mono font-bold text-gray-300 shrink-0 w-3.5" x-text="j+1"></span>
+                    <button @click="scrollToTopic(j)"
+                      :class="topic.hasSummary ? 'not-italic' : 'italic'"
+                      class="text-xs text-gray-700 leading-snug text-left hover:text-blue-600 transition-colors"
+                      x-text="shortLabel(topic.headline)"></button>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div><!-- end sidebar -->
+
+        </div>
+      </template>
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         PHASE 2 — IMAGE PROMPTS + IMAGES
+    ──────────────────────────────────────────────── -->
+    <div x-show="activePhase===2" class="fade-in">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Image Prompts & Images</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Generate image prompts, then upload your 10 images.</p>
+        </div>
+        <div class="flex gap-2">
+          <template x-if="phases[2].prompts.length > 0">
+            <button @click="downloadPhase2()" class="text-sm border border-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50">
+              ↓ Download prompts
+            </button>
+          </template>
+          <template x-if="phases[2].prompts.length > 0 && phases[2].status!=='approved'">
+            <button @click="approvePhase2()" class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              Approve Phase 2 →
+            </button>
+          </template>
+          <template x-if="phases[2].status==='approved'">
+            <span class="text-sm text-green-600 font-medium flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Approved
+            </span>
+          </template>
+        </div>
+      </div>
+
+      <!-- Stale banner — Phase 1 changed after these prompts were generated -->
+      <div x-show="phases[2].stale && phases[2].prompts.length > 0" class="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3 fade-in">
+        <p class="text-sm text-amber-800">
+          <span class="font-medium">Phase 1 changed</span> since these prompts were generated. Regenerate to sync them with your current topics.
+        </p>
+        <button @click="runPhase2()"
+          :disabled="phases[2].status==='streaming' || !phases[2].artStyle || !apiKey || phases[1].topics.length===0"
+          class="shrink-0 text-sm bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          Regenerate prompts
+        </button>
+      </div>
+
+      <!-- Section A: Art style -->
+      <div class="bg-gray-50 rounded-xl p-5 mb-5">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Art style</label>
+        <input type="text" x-model="phases[2].artStyle"
+          placeholder="e.g. vintage/retro illustration, oil painting, risograph..."
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3">
+        <div class="flex flex-wrap gap-2">
+          <template x-for="style in ['vintage/retro illustration','oil painting','risograph print','line art','watercolor']" :key="style">
+            <button @click="phases[2].artStyle=style"
+              :class="phases[2].artStyle===style?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-600 border-gray-200 hover:border-blue-300'"
+              class="text-xs border px-3 py-1 rounded-full transition-colors"
+              x-text="style"></button>
+          </template>
+        </div>
+
+        <button @click="runPhase2()"
+          :disabled="phases[2].status==='streaming' || !phases[2].artStyle || !apiKey || phases[1].topics.length===0"
+          class="mt-4 bg-blue-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span x-show="phases[2].status!=='streaming'">
+            <span x-show="phases[2].prompts.length===0">Generate Prompts</span>
+            <span x-show="phases[2].prompts.length>0">Regenerate</span>
+          </span>
+          <span x-show="phases[2].status==='streaming'" class="flex items-center gap-2">
+            <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            Generating prompts...
+          </span>
+        </button>
+        <p x-show="phases[1].topics.length===0" class="text-xs text-amber-600 mt-2">Complete Phase 1 first.</p>
+        <p x-show="!apiKey" class="text-xs text-red-500 mt-2">Add your API key in Settings.</p>
+      </div>
+
+      <!-- Streaming -->
+      <div x-show="phases[2].status==='streaming'" class="border border-gray-200 rounded-xl overflow-hidden mb-5">
+        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+          <span class="w-2 h-2 bg-blue-500 rounded-full pulse-dot"></span>
+          <span class="text-xs text-gray-500">Generating image prompts...</span>
+        </div>
+        <div id="p2-stream" class="stream-box p-4 h-48 overflow-y-auto text-gray-700 bg-white"></div>
+      </div>
+
+      <!-- Section B: Prompt cards -->
+      <template x-if="phases[2].prompts.length > 0">
+        <div class="mb-6">
+          <p class="text-sm font-medium text-gray-700 mb-3">Image prompts</p>
+          <div class="space-y-3">
+            <template x-for="(p, i) in phases[2].prompts" :key="i">
+              <div class="border border-gray-200 rounded-xl p-4 bg-white fade-in">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-xs font-medium text-gray-500">Topic <span x-text="i+1"></span></span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    :class="p.format==='VERTICAL'?'bg-blue-100 text-blue-700':'bg-orange-100 text-orange-700'"
+                    x-text="p.format+' '+(p.format==='VERTICAL'?'9:16':'16:9')"></span>
+                  <span x-show="p.logos" class="text-xs text-gray-400" x-text="'🏷 '+p.logos"></span>
+                </div>
+                <textarea x-model="p.text" rows="4"
+                  class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                  @input="saveMonthState()"></textarea>
+                <button @click="copyText(p.text)" class="mt-1 text-xs text-gray-400 hover:text-blue-600">Copy prompt</button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Section C: Image upload -->
+      <div class="border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-sm font-medium text-gray-700">Images <span class="text-gray-400 font-normal">(optional)</span> — <span x-text="countFilledImages()"></span>/10</p>
+          <label class="cursor-pointer text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
+            Upload images
+            <input type="file" accept="image/*" multiple class="hidden" @change="handleImageUpload($event)">
+          </label>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">Optional — you can approve Phase 2 from the prompts alone and paste images straight into Figma in Phase 3. If you'd rather preview them here first, upload 1–10 files. They're assigned to topics in selection order, or click a slot to replace one.</p>
+
+        <!-- Image grid (2 rows × 5 cols) -->
+        <div class="grid grid-cols-5 gap-3">
+          <template x-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n">
+            <label class="cursor-pointer group">
+              <input type="file" accept="image/*" class="hidden" @change="handleSingleImageUpload($event, n)">
+              <div class="aspect-[9/16] border-2 rounded-xl overflow-hidden flex items-center justify-center relative"
+                :class="phases[2].images[n]?'border-green-300 bg-green-50':'border-dashed border-gray-200 bg-gray-50 group-hover:border-blue-300'">
+                <template x-if="phases[2].images[n]">
+                  <img :src="phases[2].images[n]" class="w-full h-full object-cover">
+                </template>
+                <template x-if="!phases[2].images[n]">
+                  <span class="text-xs text-gray-400 font-medium" x-text="n"></span>
+                </template>
+                <!-- Slot number overlay -->
+                <span class="absolute top-1 left-1 text-xs font-bold text-white bg-black/40 rounded px-1" x-text="n"></span>
+              </div>
+              <p class="text-xs text-center text-gray-400 mt-1 truncate">
+                <span x-text="phases[2].images[n]?'✓':'+'"></span>
+              </p>
+            </label>
+          </template>
+        </div>
+
+        <template x-if="countFilledImages()===10">
+          <p class="text-sm text-green-600 font-medium mt-4 text-center">All 10 images ready.</p>
+        </template>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         PHASE 3 — FIGMA ASSEMBLY
+    ──────────────────────────────────────────────── -->
+    <div x-show="activePhase===3" class="fade-in">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Figma Assembly</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Prepare the Phase 3 prompt, then run it in your Claude Code session.</p>
+        </div>
+        <button @click="copyPhase3Prompt()"
+          class="text-sm bg-gray-900 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          Copy Phase 3 Prompt
+        </button>
+      </div>
+
+      <!-- Stale banner — Phase 1 changed since the prompt was last copied -->
+      <div x-show="phases[3].stale" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3 fade-in">
+        <p class="text-sm text-amber-800">
+          <span class="font-medium">Phase 1 changed</span> since you last copied the prompt. Re-copy it so the assembly uses your latest topics, headlines, and order.
+        </p>
+        <button @click="copyPhase3Prompt()" class="shrink-0 text-sm bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">
+          Re-copy prompt
+        </button>
+      </div>
+
+      <!-- How it works note -->
+      <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800">
+        <p class="font-medium mb-1">How Phase 3 works</p>
+        <p class="text-blue-700 text-xs">Click <strong>Copy Phase 3 Prompt</strong> above — it includes your sorted topic order, all headlines, summaries, and categories pre-filled. Paste it into your Claude Code session (the one with Figma MCP active). Claude Code will execute the Figma assembly steps and changes will appear live in your file.</p>
+      </div>
+
+      <!-- Sort preview table -->
+      <div class="mb-6">
+        <p class="text-sm font-medium text-gray-700 mb-3">Computed Figma sort order</p>
+        <template x-if="phases[1].topics.length > 0">
+          <div class="border border-gray-200 rounded-xl overflow-hidden">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                  <th class="text-left px-4 py-2.5 font-medium text-gray-600">Figma Slot</th>
+                  <th class="text-left px-4 py-2.5 font-medium text-gray-600">Original</th>
+                  <th class="text-left px-4 py-2.5 font-medium text-gray-600">Category</th>
+                  <th class="text-left px-4 py-2.5 font-medium text-gray-600">Template</th>
+                  <th class="text-left px-4 py-2.5 font-medium text-gray-600">Headline (preview)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, i) in computedSortOrder()" :key="i">
+                  <tr :class="i%2===0?'bg-white':'bg-gray-50'" class="border-b border-gray-100">
+                    <td class="px-4 py-2.5 font-mono font-bold text-gray-700">Topic_<span x-text="row.slot"></span></td>
+                    <td class="px-4 py-2.5 text-gray-500">T<span x-text="row.originalIndex+1"></span></td>
+                    <td class="px-4 py-2.5">
+                      <span class="font-medium px-1.5 py-0.5 rounded text-xs"
+                        :class="categoryColor(row.category)"
+                        x-text="row.category"></span>
+                    </td>
+                    <td class="px-4 py-2.5 font-mono text-gray-600 text-xs" x-text="row.template"></td>
+                    <td class="px-4 py-2.5 text-gray-500 max-w-xs truncate" x-text="row.headline.slice(0,60)+'...'"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </template>
+        <template x-if="phases[1].topics.length===0">
+          <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center text-sm text-gray-400">
+            Complete Phase 1 to see the sort preview.
+          </div>
+        </template>
+      </div>
+
+      <!-- Interactive step checklist -->
+      <div class="mb-6">
+        <p class="text-sm font-medium text-gray-700 mb-3">Assembly checklist (mark steps as you go)</p>
+        <div class="space-y-2">
+          <template x-for="(step, i) in phase3Steps" :key="i">
+            <div class="border border-gray-200 rounded-xl p-4 bg-white"
+              :class="phases[3].stepsChecked[i]?'border-green-200 bg-green-50':''">
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" :checked="phases[3].stepsChecked[i]"
+                  @change="toggleStep(i)"
+                  class="mt-0.5 rounded border-gray-300 text-green-600">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-800" :class="phases[3].stepsChecked[i]?'line-through text-gray-400':''" x-text="step.title"></p>
+                  <p class="text-xs text-gray-500 mt-0.5" x-text="step.desc"></p>
+                </div>
+              </label>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Final output upload -->
+      <div class="border border-gray-200 rounded-xl p-5">
+        <p class="text-sm font-medium text-gray-700 mb-1">Final output preview (optional)</p>
+        <p class="text-xs text-gray-400 mb-4">After exporting from Figma, upload your 10 PNGs here to preview them.</p>
+        <label class="cursor-pointer inline-block text-sm border border-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50">
+          Upload exported PNGs
+          <input type="file" accept="image/png" multiple class="hidden" @change="handleFinalUpload($event)">
+        </label>
+        <template x-if="Object.keys(phases[3].finalImages).length > 0">
+          <div class="grid grid-cols-5 gap-3 mt-4">
+            <template x-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n">
+              <div class="aspect-[9/16] border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                <template x-if="phases[3].finalImages[n]">
+                  <img :src="phases[3].finalImages[n]" class="w-full h-full object-cover">
+                </template>
+                <template x-if="!phases[3].finalImages[n]">
+                  <div class="w-full h-full flex items-center justify-center text-xs text-gray-300" x-text="n"></div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+  </div><!-- end phase view -->
+
+<!-- ─────────────────────────────────────────────────
+     MAIN SCRIPT
+──────────────────────────────────────────────────── -->
+<script>
+const KNOWN_CATEGORIES = [
+  'FOCUS_AI','TECHNOLOGIC','RETHINKING_TECH','REFORMING_TECH',
+  'EMPLOYEE_OF_THE_MONTH','INVESTMENT_WATCH','TECH_ACQUISITIONS',
+  'WORD_OF_THE_MONTH','AI_ART','SPACE'
+];
+
+const PHASE3_STEPS = [
+  { title: 'Step 1 — Paste images', desc: 'Paste all 10 images into the Figma canvas. Name them with numbers 1–10 visible (e.g. image_1, img3).' },
+  { title: 'Step 2 — Run Claude Code with the copied prompt', desc: 'Paste the Phase 3 prompt into your Claude Code session. It handles sorting, cloning, and template selection automatically.' },
+  { title: 'Step 3 — Transfer images', desc: 'Claude Code transfers image hashes to the correct card slots and deletes the source nodes.' },
+  { title: 'Step 4 — Set text', desc: 'Headlines and summaries are applied in Inter Bold / Roboto Regular as placeholders.' },
+  { title: 'Step 5 — Check text overlap', desc: 'Claude Code checks that headlines don\'t overlap summaries, and summaries reach the READ_STORY box bottom.' },
+  { title: 'Step 6 — Background image', desc: 'Continuous background applied across all 10 cards in CROP mode.' },
+  { title: 'Step 7 — Link annotations', desc: 'Read-more URLs added as text nodes to the right of each card.' },
+  { title: 'Step 8 — Header & footer', desc: 'Header grouped with Topic_1, Footer grouped with the last topic.' },
+  { title: 'Step 9 — Font swap (manual)', desc: 'Open Font Switcher plugin: Inter Bold → Brilliant Cut Pro Medium, Roboto Regular → Fancy Cut Pro Regular.' },
+  { title: 'Step 10 — Export', desc: 'Select all Topic_N frames → Export → PNG 2x. Save to final_output/ folder.' },
+];
+
+// ─── Streaming engine (multi-provider) ─────────────
+async function streamAnthropic({ apiKey, model, system, userMessage, maxTokens, onChunk, onComplete, onError }) {
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'claude-opus-4-7',
+        max_tokens: maxTokens || 8000,
+        stream: true,
+        system,
+        messages: [{ role: 'user', content: userMessage }],
+      }),
+    });
+    if (!resp.ok) {
+      let msg = `Anthropic error ${resp.status}`;
+      try { const e = await resp.json(); msg = e.error?.message || msg; } catch {}
+      onError(msg); return;
+    }
+    const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
+    let full = '', buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += value;
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        try {
+          const p = JSON.parse(raw);
+          if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta') {
+            full += p.delta.text; onChunk(p.delta.text, full);
+          }
+        } catch {}
+      }
+    }
+    onComplete(full);
+  } catch (err) { onError(err.message || 'Network error'); }
+}
+
+async function streamOpenAI({ apiKey, model, system, userMessage, maxTokens, onChunk, onComplete, onError, baseURL }) {
+  try {
+    const resp = await fetch(`${baseURL || 'https://api.openai.com'}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: model || 'gpt-4o',
+        max_tokens: maxTokens || 8000,
+        stream: true,
+        messages: [{ role: 'system', content: system }, { role: 'user', content: userMessage }],
+      }),
+    });
+    if (!resp.ok) {
+      let msg = `OpenAI error ${resp.status}`;
+      try { const e = await resp.json(); msg = e.error?.message || msg; } catch {}
+      onError(msg); return;
+    }
+    const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
+    let full = '', buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += value;
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const p = JSON.parse(raw);
+          const text = p.choices?.[0]?.delta?.content || '';
+          if (text) { full += text; onChunk(text, full); }
+        } catch {}
+      }
+    }
+    onComplete(full);
+  } catch (err) { onError(err.message || 'Network error'); }
+}
+
+function detectProvider(apiKey, customBaseURL) {
+  if (customBaseURL) return 'custom';
+  if (!apiKey) return 'anthropic';
+  if (apiKey.startsWith('sk-ant-')) return 'anthropic';
+  if (apiKey.startsWith('pplx-')) return 'perplexity';
+  if (apiKey.startsWith('sk-')) return 'openai';
+  return 'custom'; // unknown prefix — treat as OpenAI-compatible, user should set base URL
+}
+
+function defaultModel(provider) {
+  if (provider === 'openai') return 'gpt-4o';
+  if (provider === 'perplexity') return 'sonar-pro';
+  if (provider === 'custom') return '';
+  return 'claude-opus-4-7';
+}
+
+async function streamPerplexity(params) {
+  return streamOpenAI({ ...params, baseURL: 'https://api.perplexity.ai' });
+}
+
+function streamAI(params) {
+  const provider = detectProvider(params.apiKey, params.customBaseURL);
+  const model = params.customModel || defaultModel(provider);
+  if (provider === 'anthropic') return streamAnthropic({ ...params, model });
+  if (provider === 'perplexity') return streamPerplexity({ ...params, model });
+  // openai or custom — OpenAI-compatible format
+  return streamOpenAI({ ...params, model, baseURL: params.customBaseURL || undefined });
+}
+
+// ─── Parsers ──────────────────────────────────────
+function parsePhase0Output(text) {
+  const candidates = [];
+  const matches = [...text.matchAll(/<candidate id="(\d+)">([\s\S]*?)<\/candidate>/g)];
+  for (const m of matches) {
+    const content = m[2];
+    candidates.push({
+      id: parseInt(m[1]),
+      status: (content.match(/<status>([\s\S]*?)<\/status>/) || [])[1]?.trim().toLowerCase() || 'keep',
+      category: (content.match(/<category>([\s\S]*?)<\/category>/) || [])[1]?.trim() || '',
+      format: (content.match(/<format>([\s\S]*?)<\/format>/) || [])[1]?.trim().toLowerCase().includes('no') ? 'nosummary' : 'standard',
+      headline: (content.match(/<headline>([\s\S]*?)<\/headline>/) || [])[1]?.trim() || '',
+      sources: (content.match(/<sources>([\s\S]*?)<\/sources>/) || [])[1]?.trim() || '',
+      published: (content.match(/<published>([\s\S]*?)<\/published>/) || [])[1]?.trim() || '',
+      why: (content.match(/<why>([\s\S]*?)<\/why>/) || [])[1]?.trim() || '',
+      note: '',
+      regenerating: false,
+    });
+  }
+  return candidates;
+}
+
+function parsePhase1Output(text) {
+  const topics = [];
+  const matches = [...text.matchAll(/<topic id="(\d+)">([\s\S]*?)<\/topic>/g)];
+  for (const m of matches) {
+    const content = m[2];
+    const hasSummaryRaw = (content.match(/<has_summary>([\s\S]*?)<\/has_summary>/) || [])[1]?.trim() || 'true';
+    const hasSummary = hasSummaryRaw.toLowerCase() !== 'false';
+    const linksRaw = (content.match(/<links>([\s\S]*?)<\/links>/) || [])[1]?.trim() || '';
+    topics.push({
+      id: parseInt(m[1]),
+      headline: (content.match(/<headline>([\s\S]*?)<\/headline>/) || [])[1]?.trim() || '',
+      category: (content.match(/<category>([\s\S]*?)<\/category>/) || [])[1]?.trim() || 'UNCATEGORIZED',
+      hasSummary,
+      summary: hasSummary ? ((content.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1]?.trim() || '') : '',
+      links: linksRaw.split('|').map(l => l.trim()).filter(Boolean),
+    });
+  }
+  return topics;
+}
+
+function parsePhase2Output(text) {
+  const prompts = [];
+  const matches = [...text.matchAll(/<prompt id="(\d+)">([\s\S]*?)<\/prompt>/g)];
+  for (const m of matches) {
+    const content = m[2];
+    prompts.push({
+      id: parseInt(m[1]),
+      format: (content.match(/<format>([\s\S]*?)<\/format>/) || [])[1]?.trim() || 'VERTICAL',
+      logos: (content.match(/<logos>([\s\S]*?)<\/logos>/) || [])[1]?.trim() || '',
+      theme: (content.match(/<theme>([\s\S]*?)<\/theme>/) || [])[1]?.trim() || '',
+      text: (content.match(/<text>([\s\S]*?)<\/text>/) || [])[1]?.trim() || '',
+    });
+  }
+  return prompts;
+}
+
+// ─── Category sort algorithm (Phase 3) ────────────
+function computeSortOrder(topics) {
+  if (!topics || topics.length === 0) return [];
+  const categoryOrder = {};
+  let idx = 0;
+  for (const t of topics) {
+    if (!(t.category in categoryOrder)) categoryOrder[t.category] = idx++;
+  }
+  const sorted = topics.map((t, i) => ({ ...t, originalIndex: i }))
+    .sort((a, b) => {
+      const d = categoryOrder[a.category] - categoryOrder[b.category];
+      return d !== 0 ? d : a.originalIndex - b.originalIndex;
+    });
+  const categorySeen = new Set();
+  let side = 'left';
+  return sorted.map((t, i) => {
+    const isFirst = !categorySeen.has(t.category);
+    categorySeen.add(t.category);
+    let template, imageSide = null;
+    if (!t.hasSummary) {
+      template = 'Category_Horizontal';
+    } else if (isFirst) {
+      imageSide = side;
+      template = side === 'left' ? 'Category_Vertical_Image_Left' : 'Category_Vertical_Image_Right';
+      side = side === 'left' ? 'right' : 'left';
+    } else {
+      imageSide = side;
+      template = side === 'left' ? 'no_category_left_image' : 'no_category_right_image';
+      side = side === 'left' ? 'right' : 'left';
+    }
+    return { slot: i + 1, originalIndex: t.originalIndex, headline: t.headline, category: t.category, hasSummary: t.hasSummary, template, imageSide };
+  });
+}
+
+// ─── Phase 3 prompt generator ─────────────────────
+function generatePhase3Prompt(month, topics, phase3Guide) {
+  const sortOrder = computeSortOrder(topics);
+  const sortTable = sortOrder.map(row =>
+    `- Topic_${row.slot} = original T${row.originalIndex + 1} | ${row.category} | ${row.hasSummary ? 'has summary' : 'NO SUMMARY'} | ${row.imageSide ? 'image ' + row.imageSide.toUpperCase() : 'N/A'} | template: ${row.template}`
+  ).join('\n');
+
+  const topicData = sortOrder.map(row => {
+    const t = topics[row.originalIndex];
+    const lines = [
+      `Topic_${row.slot} headline: ${t.headline}`,
+    ];
+    if (t.hasSummary && t.summary) lines.push(`Topic_${row.slot} summary: ${t.summary}`);
+    if (t.links && t.links[0]) lines.push(`Topic_${row.slot} read more: ${t.links[0]}`);
+    return lines.join('\n');
+  }).join('\n\n');
+
+  return `You are assembling the ${month.charAt(0).toUpperCase() + month.slice(1)} 2026 Fuxing Newsletter in Figma. Images 1–10 are already pasted on the canvas. Follow Phase 3 steps in strict sequence.
+
+## Sorted topic order (use this sequence for ALL steps):
+${sortTable}
+
+## Headlines, summaries, and links (in sorted Figma order):
+${topicData}
+
+## Phase 3 instructions:
+${phase3Guide}
+
+Begin with Step 2 (images are already pasted per Step 1). Execute each step completely before moving to the next.`;
+}
+
+// ─── File utilities ────────────────────────────────
+function downloadFile(content, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function readFileAsText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(file);
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// ─── Stream helpers ────────────────────────────────
+function appendToStream(elId, text) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent += text;
+  el.scrollTop = el.scrollHeight;
+}
+function clearStream(elId) {
+  const el = document.getElementById(elId);
+  if (el) el.textContent = '';
+}
+
+// ─── Alpine.js app ─────────────────────────────────
+function app() {
+  return {
+    view: 'welcome',
+    currentMonth: '',
+    monthInput: '',
+    apiKey: '',
+    customBaseURL: '',
+    customModel: '',
+    showSettings: false,
+    toasts: [],
+    activePhase: 1,
+    knownCategories: KNOWN_CATEGORIES,
+    phase3Steps: PHASE3_STEPS,
+    dragIndex: null,
+    dragOverIndex: null,
+
+    phases: {
+      0: { status: 'idle', candidates: [], additionalTopics: '', inputDataContent: '', skipped: false, searchProgress: [], aiStreaming: false, addingTopics: false },
+      1: { status: 'idle', rawOutput: '', topics: [], inputData: '', showInput: true },
+      2: { status: 'idle', rawOutput: '', prompts: [], artStyle: '', images: {}, stale: false },
+      3: { status: 'idle', stepsChecked: Array(10).fill(false), finalImages: {}, stale: false, copied: false },
+    },
+
+    init() {
+      this.apiKey       = localStorage.getItem('fuxing_api_key')        || '';
+      this.customBaseURL = localStorage.getItem('fuxing_base_url')      || '';
+      this.customModel   = localStorage.getItem('fuxing_custom_model')  || '';
+      const saved = localStorage.getItem('fuxing_current_month');
+      if (saved) { this.currentMonth = saved; this.monthInput = saved; }
+    },
+
+    // ── Settings ─────────────────────────────────
+    saveSettings() {
+      localStorage.setItem('fuxing_api_key',       this.apiKey);
+      localStorage.setItem('fuxing_base_url',      this.customBaseURL);
+      localStorage.setItem('fuxing_custom_model',  this.customModel);
+      this.showToast('Settings saved');
+    },
+
+    get savedMonths() {
+      const months = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('fuxing_month_')) months.push(key.replace('fuxing_month_', ''));
+      }
+      return months.sort();
+    },
+
+    switchMonth(m) {
+      this.currentMonth = m;
+      this.monthInput = m;
+      localStorage.setItem('fuxing_current_month', m);
+      this.loadMonthState();
+      this.view = 'phases';
+    },
+
+    // ── Month management ─────────────────────────
+    beginMonth() {
+      if (this.monthInput.trim()) this.startWithDiscovery();
+    },
+
+    startWithDiscovery() {
+      this.currentMonth = this.monthInput.trim().toLowerCase();
+      localStorage.setItem('fuxing_current_month', this.currentMonth);
+      this.loadMonthState();
+      this.view = 'phases';
+      this.activePhase = 0;
+    },
+
+    async handleInputUpload(evt) {
+      const file = evt.target.files?.[0];
+      if (!file) return;
+      const content = await readFileAsText(file);
+      this.currentMonth = this.monthInput.trim().toLowerCase() || this.currentMonth || 'unknown';
+      localStorage.setItem('fuxing_current_month', this.currentMonth);
+      this.loadMonthState();
+      this.phases[1].inputData = content;
+      this.view = 'phases';
+      this.activePhase = 1;
+      this.saveMonthState();
+      this.showToast('Input file loaded');
+    },
+
+    loadMonthState() {
+      const raw = localStorage.getItem(`fuxing_month_${this.currentMonth}`);
+      if (!raw) return;
+      try {
+        const saved = JSON.parse(raw);
+        if (saved.phases) {
+          for (const k of [0,1,2,3]) {
+            if (saved.phases[k]) Object.assign(this.phases[k], saved.phases[k]);
+          }
+        }
+      } catch {}
+    },
+
+    saveMonthState() {
+      const data = {
+        phases: {
+          0: { status: this.phases[0].status, candidates: this.phases[0].candidates, inputDataContent: this.phases[0].inputDataContent, skipped: this.phases[0].skipped },
+          1: { status: this.phases[1].status, topics: this.phases[1].topics, inputData: this.phases[1].inputData, rawOutput: this.phases[1].rawOutput },
+          2: { status: this.phases[2].status, prompts: this.phases[2].prompts, artStyle: this.phases[2].artStyle, images: this.phases[2].images, stale: this.phases[2].stale },
+          3: { status: this.phases[3].status, stepsChecked: this.phases[3].stepsChecked, stale: this.phases[3].stale, copied: this.phases[3].copied },
+        }
+      };
+      localStorage.setItem(`fuxing_month_${this.currentMonth}`, JSON.stringify(data));
+    },
+
+    // ── Phase tab logic ──────────────────────────
+    canAccessPhase(idx) {
+      if (idx === 0) return true;
+      if (idx === 1) return this.phases[0].status === 'approved' || this.phases[0].skipped || this.phases[1].inputData;
+      if (idx === 2) return this.phases[1].status === 'approved';
+      if (idx === 3) return this.phases[2].status === 'approved';
+      return false;
+    },
+
+    phaseTabClick(idx) {
+      if (this.canAccessPhase(idx)) this.activePhase = idx;
+    },
+
+    phaseStatus(idx) {
+      const s = this.phases[idx]?.status;
+      return s;
+    },
+
+    // ── Phase 0 ──────────────────────────────────
+    // Shared LLM call for discovery (web search on Anthropic/OpenAI/Perplexity).
+    // Streams to streamElId when provided. Returns the full text or throws.
+    async _discoverCandidates({ userMessage, streamElId }) {
+      const instructions = document.getElementById('phase0-instructions').value;
+      const provider = detectProvider(this.apiKey, this.customBaseURL);
+
+      if (provider === 'anthropic') {
+        // Non-streaming with Anthropic built-in web_search tool
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': this.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-beta': 'web-search-2025-03-05',
+            'anthropic-dangerous-allow-browser': 'true',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: this.customModel || 'claude-opus-4-7',
+            max_tokens: 8000,
+            tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+            system: instructions,
+            messages: [{ role: 'user', content: userMessage }],
+          }),
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({}));
+          throw new Error(e.error?.message || `HTTP ${resp.status}`);
+        }
+        const data = await resp.json();
+        const full = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+        if (streamElId) appendToStream(streamElId, full);
+        return full;
+      }
+
+      // OpenAI (gpt-4o-search-preview), Perplexity (sonar-pro), or custom OpenAI-compatible — streaming
+      const model = this.customModel || (provider === 'perplexity' ? 'sonar-pro' : provider === 'openai' ? 'gpt-4o-search-preview' : '');
+      if (!model) throw new Error('Set a model name in Settings for your custom provider');
+      const baseURL = this.customBaseURL || (provider === 'perplexity' ? 'https://api.perplexity.ai' : 'https://api.openai.com');
+      const resp = await fetch(`${baseURL}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${this.apiKey}`, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model, max_tokens: 8000, stream: true,
+          messages: [{ role: 'system', content: instructions }, { role: 'user', content: userMessage }],
+        }),
+      });
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({}));
+        throw new Error(e.error?.message || `HTTP ${resp.status}`);
+      }
+      let full = '', buf = '';
+      const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += value;
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (raw === '[DONE]') continue;
+          try {
+            const p = JSON.parse(raw);
+            const delta = p.choices?.[0]?.delta?.content || '';
+            if (delta) { full += delta; if (streamElId) appendToStream(streamElId, delta); }
+          } catch {}
+        }
+      }
+      return full;
+    },
+
+    async runPhase0() {
+      if (!this.apiKey) { this.showToast('Add AI API key in Settings'); return; }
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const year = new Date().getFullYear();
+      const provider = detectProvider(this.apiKey, this.customBaseURL);
+
+      this.phases[0].status = 'streaming';
+      this.phases[0].candidates = [];
+      this.phases[0].aiStreaming = true;
+      this.$nextTick(() => clearStream('p0-stream'));
+
+      const webSearchInstruction = (provider === 'anthropic' || provider === 'openai' || provider === 'perplexity')
+        ? 'Use real-time web search to find stories actually published in ' + month + ' ' + year + '. Do not rely on training data.'
+        : 'Find the most important and relevant stories from ' + month + ' ' + year + '.';
+
+      const userMessage = `Find 15-20 newsletter candidates for the ${month} ${year} edition of the Fuxing newsletter.\n\n${webSearchInstruction} Output each candidate using the exact XML format specified in your instructions.`;
+
+      try {
+        const full = await this._discoverCandidates({ userMessage, streamElId: 'p0-stream' });
+        this.phases[0].status = 'ready';
+        this.phases[0].aiStreaming = false;
+        this.phases[0].candidates = parsePhase0Output(full);
+        if (this.phases[0].candidates.length === 0) {
+          this.showToast('Could not parse candidates — check raw output above');
+        } else {
+          this.showToast(`Found ${this.phases[0].candidates.length} candidates`);
+        }
+        this.saveMonthState();
+      } catch (e) {
+        this.phases[0].status = 'idle';
+        this.phases[0].aiStreaming = false;
+        this.showToast('Error: ' + (e.message || String(e)));
+      }
+    },
+
+    // Add the editor's own topics — appends to the candidate list without regenerating the rest.
+    async addOwnTopics() {
+      if (!this.apiKey) { this.showToast('Add AI API key in Settings'); return; }
+      const raw = (this.phases[0].additionalTopics || '').trim();
+      if (!raw) { this.showToast('Enter one or more topics first'); return; }
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const year = new Date().getFullYear();
+      const provider = detectProvider(this.apiKey, this.customBaseURL);
+
+      this.phases[0].addingTopics = true;
+      this.$nextTick(() => clearStream('p0-add-stream'));
+
+      const webSearchInstruction = (provider === 'anthropic' || provider === 'openai' || provider === 'perplexity')
+        ? 'Use real-time web search to find the real source articles and accurate details for each topic.'
+        : 'Use your knowledge to fill in accurate details and likely sources for each topic.';
+
+      const userMessage = `The editor wants to add the following specific topics to the ${month} ${year} candidate list. Create exactly one candidate per topic, in the order given, using the exact XML candidate format from your instructions. ${webSearchInstruction} Verify each story is real and fill in real source URLs.\n\nEditor's topics:\n${raw}`;
+
+      try {
+        const full = await this._discoverCandidates({ userMessage, streamElId: 'p0-add-stream' });
+        const added = parsePhase0Output(full);
+        if (added.length === 0) {
+          this.showToast('Could not parse added topics — try rephrasing');
+          this.phases[0].addingTopics = false;
+          return;
+        }
+        const startId = this.phases[0].candidates.length;
+        added.forEach((c, k) => { c.id = startId + k + 1; });
+        this.phases[0].candidates = [...this.phases[0].candidates, ...added];
+        this.phases[0].additionalTopics = '';
+        this.phases[0].addingTopics = false;
+        if (this.phases[0].status === 'idle') this.phases[0].status = 'ready';
+        this.showToast(`Added ${added.length} topic${added.length > 1 ? 's' : ''} to the list`);
+        this.saveMonthState();
+      } catch (e) {
+        this.phases[0].addingTopics = false;
+        this.showToast('Error: ' + (e.message || String(e)));
+      }
+    },
+
+    // Regenerate a single candidate in place from the editor's modify instruction.
+    async regenerateCandidate(i) {
+      const c = this.phases[0].candidates[i];
+      if (!c || !c.note || !this.apiKey) return;
+      c.regenerating = true;
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+
+      const userMessage = `Revise ONE existing newsletter candidate for the ${month} edition based on the editor's instruction. Output exactly one <candidate> block using the same XML format from your instructions. Use web search if you need updated facts or new sources.\n\nCurrent candidate:\n<category>${c.category}</category>\n<format>${c.format === 'nosummary' ? 'No summary' : 'standard'}</format>\n<headline>${c.headline}</headline>\n<sources>${c.sources}</sources>\n<why>${c.why}</why>\n\nEditor instruction: ${c.note}`;
+
+      try {
+        const full = await this._discoverCandidates({ userMessage, streamElId: null });
+        const parsed = parsePhase0Output(full);
+        if (parsed.length > 0) {
+          const u = parsed[0];
+          c.category = u.category || c.category;
+          c.format = u.format || c.format;
+          c.headline = u.headline || c.headline;
+          c.sources = u.sources || c.sources;
+          c.why = u.why || c.why;
+          c.note = '';
+          this.showToast(`Candidate ${i + 1} updated`);
+        } else {
+          this.showToast('Could not parse regenerated candidate');
+        }
+        c.regenerating = false;
+        this.saveMonthState();
+      } catch (e) {
+        c.regenerating = false;
+        this.showToast('Error: ' + (e.message || String(e)));
+      }
+    },
+
+    // Parse a <sources> string (Markdown links and/or raw URLs) into {title, url} pairs.
+    parseSources(str) {
+      if (!str) return [];
+      const out = [];
+      const re = /\[([^\]]*)\]\(([^)]+)\)/g;
+      let m;
+      while ((m = re.exec(str)) !== null) {
+        const url = m[2].trim();
+        out.push({ title: m[1].trim() || url, url });
+      }
+      if (out.length === 0) {
+        str.split(/[|\n·]/).map(s => s.trim()).filter(Boolean).forEach(u => {
+          let title = u;
+          try { title = new URL(u.startsWith('http') ? u : 'https://' + u).hostname.replace('www.', ''); } catch {}
+          out.push({ title, url: u });
+        });
+      }
+      return out;
+    },
+
+    processPhase0Candidates() {
+      const kept = this.phases[0].candidates.filter(c => c.status === 'keep' || c.status === 'modify');
+      if (kept.length === 0) { this.showToast('No candidates marked as Keep'); return; }
+      const lines = kept.map((c, i) => {
+        const sources = this.parseSources(c.sources).map(s => `[${s.title}](${s.url})`).join(' · ') || c.sources;
+        const narrative = c.format === 'nosummary' ? 'No Summary' : '';
+        return `Topic ${i + 1}:\n${sources}\nNarrative: ${narrative}`;
+      });
+      this.phases[0].inputDataContent = lines.join('\n\n');
+      this.phases[0].status = 'approved';
+      this.saveMonthState();
+      this.showToast(`input_data.txt generated — ${kept.length} topics`);
+    },
+
+    // ── Phase 1 ──────────────────────────────────
+    countInputTopics() {
+      if (!this.phases[1].inputData) return 0;
+      return (this.phases[1].inputData.match(/^Topic \d+:/gm) || []).length;
+    },
+
+    runPhase1() {
+      if (!this.apiKey) { this.showToast('Add API key in Settings'); return; }
+      const instructions = document.getElementById('phase1-instructions').value;
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const userMessage = `Generate the ${month} 2026 Fuxing Newsletter. Here is the input file:\n\n${this.phases[1].inputData}\n\nOutput each topic using EXACTLY this XML format (no variations):\n\n<topic id="N">\n<headline>HEADLINE IN ALL CAPS WITH A DOT AT THE END.</headline>\n<category>CATEGORY_NAME</category>\n<has_summary>true</has_summary>\n<summary>Summary text here.</summary>\n<links>url1 | url2</links>\n</topic>\n\nFor No summary. topics set has_summary to false and leave summary empty. Output all 10 topics.`;
+
+      this.phases[1].status = 'streaming';
+      this.phases[1].rawOutput = '';
+      this.phases[1].topics = [];
+      // Regenerating Phase 1 re-locks Phase 2 (status no longer approved); revoke
+      // Phase 2's approval too so Phase 3 stays locked until Phase 2 is approved again.
+      if (this.phases[2].status === 'approved') this.phases[2].status = 'ready';
+      this.$nextTick(() => clearStream('p1-stream'));
+
+      streamAI({
+        apiKey: this.apiKey,
+        customBaseURL: this.customBaseURL,
+        customModel: this.customModel,
+        system: instructions,
+        userMessage,
+        maxTokens: 8000,
+        onChunk: (chunk, full) => { this.phases[1].rawOutput = full; },
+        onComplete: (full) => {
+          this.phases[1].status = 'ready';
+          this.phases[1].topics = parsePhase1Output(full);
+          if (this.phases[1].topics.length === 0) {
+            this.showToast('Could not parse topics — check raw output and try regenerating');
+          } else {
+            this.showToast(`Generated ${this.phases[1].topics.length} topics`);
+          }
+          this.markPhase1Changed();
+        },
+        onError: (err) => { this.phases[1].status = 'idle'; this.showToast('Error: ' + err); },
+      });
+    },
+
+    approvePhase1() {
+      this.phases[1].status = 'approved';
+      this.markPhase1Changed();
+      this.showToast('Phase 1 approved — Phase 2 unlocked');
+    },
+
+    // Persist Phase 1 and flag any downstream output that was built from older data.
+    // Phase 2 prompts and the Phase 3 copied prompt become "stale" until refreshed.
+    markPhase1Changed() {
+      if (this.phases[2].prompts.length > 0) this.phases[2].stale = true;
+      if (this.phases[3].copied) this.phases[3].stale = true;
+      this.saveMonthState();
+    },
+
+    downloadPhase1() {
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const lines = this.phases[1].topics.map((t, i) => {
+        const parts = [`## ${t.headline}`];
+        if (t.hasSummary && t.summary) parts.push('\n' + t.summary);
+        if (t.links.length) {
+          const linkStr = t.links.map(l => `[${new URL(l.startsWith('http') ? l : 'https://'+l).hostname.replace('www.','')}](${l})`).join(' · ');
+          parts.push(`\n**Read more:** ${linkStr}`);
+        }
+        parts.push(`\n*Category: ${t.category}*`);
+        return parts.join('\n');
+      });
+      downloadFile(lines.join('\n\n---\n\n'), `headline_summary_output_${this.currentMonth}.md`);
+    },
+
+    // ── Phase 1 — Drag reorder ──────────────────
+    onDragStart(i) { this.dragIndex = i; },
+    onDragOver(i) { this.dragOverIndex = i; },
+    onDrop(i) {
+      if (this.dragIndex === null || this.dragIndex === i) { this.dragIndex = null; this.dragOverIndex = null; return; }
+      const topics = [...this.phases[1].topics];
+      const [moved] = topics.splice(this.dragIndex, 1);
+      topics.splice(i, 0, moved);
+      this.phases[1].topics = topics;
+      this.dragIndex = null;
+      this.dragOverIndex = null;
+      this.markPhase1Changed();
+    },
+    onDragEnd() { this.dragIndex = null; this.dragOverIndex = null; },
+
+    scrollToTopic(i) {
+      const el = document.getElementById('topic-card-' + i);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    shortLabel(headline) {
+      if (!headline) return '—';
+      return headline.replace(/\.$/, '').split(/\s+/).slice(0, 4).join(' ').toUpperCase();
+    },
+
+    // ── Phase 1 — Per-topic regeneration ─────────
+    regenerateTopic(i) {
+      const topic = this.phases[1].topics[i];
+      if (!topic || !topic.editInstruction || !this.apiKey) return;
+      this.phases[1].topics[i].regenerating = true;
+      const instructions = document.getElementById('phase1-instructions').value;
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const summaryLine = topic.hasSummary ? '<summary>Summary text here.</summary>\n' : '';
+      const linksStr = (topic.links || []).join(' | ');
+      const userMessage = [
+        `Regenerate one newsletter topic for the ${month} 2026 Fuxing Newsletter.`,
+        '',
+        `Current headline: ${topic.headline}`,
+        topic.hasSummary ? `Current summary: ${topic.summary}` : '(No summary — headline only)',
+        `Category: ${topic.category}`,
+        '',
+        `Editor instruction: ${topic.editInstruction}`,
+        '',
+        'Apply the instruction and output EXACTLY this XML format:',
+        '<topic id="1">',
+        '<headline>HEADLINE IN ALL CAPS WITH A DOT AT THE END.</headline>',
+        `<category>${topic.category}</category>`,
+        `<has_summary>${topic.hasSummary}</has_summary>`,
+        summaryLine + `<links>${linksStr}</links>`,
+        '</topic>',
+        '',
+        `Only modify headline${topic.hasSummary ? ' and/or summary' : ''} per the instruction. Keep category and links unchanged.`,
+      ].join('\n');
+
+      streamAI({
+        apiKey: this.apiKey,
+        customBaseURL: this.customBaseURL,
+        customModel: this.customModel,
+        system: instructions,
+        userMessage,
+        maxTokens: 2000,
+        onChunk: () => {},
+        onComplete: (full) => {
+          const parsed = parsePhase1Output(full);
+          if (parsed.length > 0) {
+            const upd = parsed[0];
+            this.phases[1].topics[i].headline = upd.headline || this.phases[1].topics[i].headline;
+            if (this.phases[1].topics[i].hasSummary && upd.summary) {
+              this.phases[1].topics[i].summary = upd.summary;
+            }
+            this.showToast(`Topic ${i + 1} updated`);
+          } else {
+            this.showToast('Could not parse regenerated output');
+          }
+          this.phases[1].topics[i].regenerating = false;
+          this.phases[1].topics[i].showEdit = false;
+          this.phases[1].topics[i].editInstruction = '';
+          this.markPhase1Changed();
+        },
+        onError: (err) => {
+          this.phases[1].topics[i].regenerating = false;
+          this.showToast('Error: ' + err);
+        },
+      });
+    },
+
+    // ── Phase 2 ──────────────────────────────────
+    runPhase2() {
+      if (!this.apiKey) { this.showToast('Add API key in Settings'); return; }
+      const instructions = document.getElementById('phase2-instructions').value;
+      const month = this.currentMonth.charAt(0).toUpperCase() + this.currentMonth.slice(1);
+      const topicsText = this.phases[1].topics.map((t, i) =>
+        `Topic ${i+1}: ${t.headline} | hasSummary: ${t.hasSummary}`
+      ).join('\n');
+
+      const userMessage = `Generate image prompts for the ${month} 2026 newsletter. Art style: ${this.phases[2].artStyle}.\n\nTopics:\n${topicsText}\n\nOutput each prompt using EXACTLY this XML format:\n\n<prompt id="N">\n<format>VERTICAL</format>\n<logos>Logo1, Logo2</logos>\n<theme>main visual theme</theme>\n<text>Full prompt text here</text>\n</prompt>\n\nRemember: no real person names in any prompt.`;
+
+      this.phases[2].status = 'streaming';
+      this.phases[2].prompts = [];
+      this.$nextTick(() => clearStream('p2-stream'));
+
+      streamAI({
+        apiKey: this.apiKey,
+        customBaseURL: this.customBaseURL,
+        customModel: this.customModel,
+        system: instructions,
+        userMessage,
+        maxTokens: 6000,
+        onChunk: (chunk) => appendToStream('p2-stream', chunk),
+        onComplete: (full) => {
+          this.phases[2].status = 'ready';
+          this.phases[2].prompts = parsePhase2Output(full);
+          this.phases[2].stale = false;
+          if (this.phases[2].prompts.length === 0) {
+            this.showToast('Could not parse prompts — try regenerating');
+          } else {
+            this.showToast(`Generated ${this.phases[2].prompts.length} prompts`);
+          }
+          this.saveMonthState();
+        },
+        onError: (err) => { this.phases[2].status = 'idle'; this.showToast('Error: ' + err); },
+      });
+    },
+
+    async handleImageUpload(evt) {
+      const files = Array.from(evt.target.files || []);
+      for (let i = 0; i < Math.min(files.length, 10); i++) {
+        const dataUrl = await readFileAsDataURL(files[i]);
+        // Find first empty slot
+        let slot = i + 1;
+        for (let n = 1; n <= 10; n++) {
+          if (!this.phases[2].images[n]) { slot = n; break; }
+        }
+        this.phases[2].images = { ...this.phases[2].images, [slot]: dataUrl };
+      }
+      this.saveMonthState();
+      this.showToast(`${files.length} image(s) uploaded`);
+    },
+
+    async handleSingleImageUpload(evt, n) {
+      const file = evt.target.files?.[0];
+      if (!file) return;
+      const dataUrl = await readFileAsDataURL(file);
+      this.phases[2].images = { ...this.phases[2].images, [n]: dataUrl };
+      this.saveMonthState();
+    },
+
+    countFilledImages() {
+      return Object.values(this.phases[2].images).filter(Boolean).length;
+    },
+
+    approvePhase2() {
+      this.phases[2].status = 'approved';
+      this.saveMonthState();
+      this.showToast('Phase 2 approved — Phase 3 unlocked');
+    },
+
+    downloadPhase2() {
+      const lines = this.phases[2].prompts.map((p, i) =>
+        `## Topic ${i+1} — ${p.format}\n\n${p.text}`
+      );
+      downloadFile(lines.join('\n\n---\n\n'), `image_prompts_output_${this.currentMonth}.md`);
+    },
+
+    // ── Phase 3 ──────────────────────────────────
+    computedSortOrder() {
+      return computeSortOrder(this.phases[1].topics);
+    },
+
+    copyPhase3Prompt() {
+      if (this.phases[1].topics.length === 0) {
+        this.showToast('Complete Phase 1 first');
+        return;
+      }
+      const guide = document.getElementById('phase3-guide').value;
+      const prompt = generatePhase3Prompt(this.currentMonth, this.phases[1].topics, guide);
+      this.copyText(prompt);
+      this.phases[3].copied = true;
+      this.phases[3].stale = false;
+      this.saveMonthState();
+      this.showToast('Phase 3 prompt copied to clipboard');
+    },
+
+    toggleStep(i) {
+      this.phases[3].stepsChecked = this.phases[3].stepsChecked.map((v, j) => j === i ? !v : v);
+      this.saveMonthState();
+    },
+
+    async handleFinalUpload(evt) {
+      const files = Array.from(evt.target.files || []);
+      for (let i = 0; i < Math.min(files.length, 10); i++) {
+        const dataUrl = await readFileAsDataURL(files[i]);
+        const n = i + 1;
+        this.phases[3].finalImages = { ...this.phases[3].finalImages, [n]: dataUrl };
+      }
+      this.showToast(`${files.length} final image(s) uploaded`);
+    },
+
+    // ── Utilities ────────────────────────────────
+    copyText(text) {
+      navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    },
+
+    showToast(msg) {
+      const id = Date.now();
+      this.toasts.push({ id, msg });
+      setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000);
+    },
+
+    categoryColor(cat) {
+      const map = {
+        'FOCUS_AI': 'bg-purple-100 text-purple-700',
+        'TECHNOLOGIC': 'bg-blue-100 text-blue-700',
+        'RETHINKING_TECH': 'bg-orange-100 text-orange-700',
+        'REFORMING_TECH': 'bg-orange-100 text-orange-700',
+        'EMPLOYEE_OF_THE_MONTH': 'bg-pink-100 text-pink-700',
+        'INVESTMENT_WATCH': 'bg-green-100 text-green-700',
+        'TECH_ACQUISITIONS': 'bg-indigo-100 text-indigo-700',
+        'WORD_OF_THE_MONTH': 'bg-yellow-100 text-yellow-700',
+        'AI_ART': 'bg-rose-100 text-rose-700',
+        'SPACE': 'bg-slate-100 text-slate-700',
+      };
+      return map[cat] || 'bg-gray-100 text-gray-600';
+    },
+
+    downloadFile(content, filename) { downloadFile(content, filename); },
+  };
+}
+</script>
+</body>
+</html>

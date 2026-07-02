@@ -1,116 +1,62 @@
 # Fuxing Newsletter Generator
 
-An AI-assisted workflow for producing the monthly Fuxing newsletter, from raw article links to finished Figma cards ready to export.
+![Fuxing Newsletter Generator](preview.png)
+
+An AI-assisted workflow that turns a list of article links into finished, Figma-ready cards for Cartier's monthly Fuxing newsletter.
 
 ---
 
-## What it does
+## How it works
 
-Each month starts with either Phase 0 (Claude searches the web and surfaces candidate stories for your approval) or a manually prepared input file. From there, the tool generates headlines, summaries, image prompts, and assembles everything into Figma-ready cards across four phases, each building on the last.
+Each issue moves through four phases. Every phase begins only after you approve the previous output.
 
----
-
-## Workflow
-
-| Phase | Input | Output |
+| Phase | You provide | You get |
 |---|---|---|
-| **Phase 1** - Newsletter copy | `.txt` input file of article links | `headline_summary_output.md` - headlines, summaries, categories |
-| **Phase 2** - Image prompts | Approved Phase 1 `.md` + art style | `image_prompts_output.md` - one image prompt per topic. If an API key is provided, images are also generated and saved automatically to `[month]/images/` |
-| **Phase 3** - Figma assembly | Approved prompts + 10 generated images | 10 exported `.png` cards |
-
-Each phase only begins once you explicitly approve the previous output.
-
----
-
-## Phase 1 - Newsletter Generation
-
-The AI reads the input file, fetches all articles, and produces a structured `.md` file with headlines, summaries, and categories for all 10 topics.
-
-**🙋 Human required:**
-1. **Prepare the input file** - name it `input_data_[month].txt`, list article links in the required format (see `CLAUDE.md`), and upload it to start the session.
-2. **Review and approve the output** - read through the generated headlines and summaries and confirm before moving on. You can request edits to any entry at this stage.
+| **0 — Discovery** | A month (or a list of topics) | Candidate stories + a ready-to-review input file |
+| **1 — Newsletter** | The approved input file | Headlines, summaries, and categories for all 10 topics |
+| **2 — Image prompts** | An art style (+ optional API key) | One image prompt per topic — images auto-generated if a key is given |
+| **3 — Figma assembly** | The 10 images pasted onto the canvas | 10 exported `.png` cards |
 
 ---
 
-## Phase 2 - Image Prompt Generation
+## Where you come in
 
-The AI generates one image prompt per topic based on the approved headlines. Vertical format for standard topics, horizontal for no-summary topics.
+- **Start** — give a month for Phase 0, or drop in your own `input_data_[month].txt`.
+- **Phase 1** — review and approve the headlines and summaries.
+- **Phase 2** — name the art style; provide an API key to auto-generate, or drop images into `[month]/images/`.
+- **Phase 3** — paste images onto the Figma canvas, swap fonts with the Font Switcher plugin, then export the 10 cards.
 
-**🙋 Human required:**
-1. **Specify the art style** - tell the AI what visual style to use (e.g. "oil painting", "risograph", "ink illustration"). This sets the tone for all 10 images.
-2. **Provide an API key** (optional) - if you have a key for OpenAI (DALL-E 3), Google (Imagen 3), or Stability AI, images are generated and saved automatically.
-3. **If no API key** - copy the prompts from `image_prompts_output.md`, generate images in your tool of choice (Midjourney, Firefly, etc.), and save them as `1.png` through `10.png` inside `[month]/images/`.
-4. **Confirm to proceed** - tell the AI the images are ready.
-
----
-
-## Phase 3 - Figma Assembly
-
-The AI uses the Figma Plugin API to clone templates, transfer images, set text, check overlaps, apply the background, and configure exports.
-
-**Figma template file:** [Newsletter_Template](https://www.figma.com/design/qwCKC7PIH7V2Kivhtn9OZW/Newsletter_Template?node-id=0-1&t=HB573EBttLRaWmvS-1) — contains all 5 template variants (`Category_Vertical_Image_Left`, `Category_Vertical_Image_Right`, `Category_Horizontal`, `no_category_left_image`, `no_category_right_image`), the background image rectangle, and header/footer nodes.
-
-**🙋 Human required:**
-1. **Paste images onto the Figma canvas** - open the Figma file and manually paste all 10 images directly onto the canvas. Names just need to include the numbers 1-10 somewhere (e.g. `image_1`, `img3`, `4`).
-2. **Confirm images are pasted** - tell the AI once done so it can begin assembly.
-3. **Swap fonts** - after the AI confirms text and spacing are correct, open the Font Switcher plugin in Figma and replace:
-   - Inter Bold -> Brilliant Cut Pro Medium
-   - Roboto Regular -> Fancy Cut Pro Regular
-4. **Confirm font swap is done** - the AI will then apply export settings.
-5. **Export the cards** - select all 10 `Topic_N` frames in Figma, scroll to Export in the right panel, and click the download button.
+**Figma template:** [Newsletter_Template](https://www.figma.com/design/qwCKC7PIH7V2Kivhtn9OZW/Newsletter_Template?node-id=0-1&t=HB573EBttLRaWmvS-1) — all 5 card variants, background rectangle, and header/footer nodes.
 
 ---
 
-## File Structure
+## Input file format
 
-```
-CLAUDE.md                         - AI instructions (role, input format, workflow)
-phase1_newsletter.md              - Phase 1 detailed rules
-phase2_image_prompts.md           - Phase 2 detailed rules
-phase3_figma.md                   - Phase 3 detailed rules
-README.md                         - This file
-
-[Month]/
-  headline_summary_output.md      - Phase 1 output
-  image_prompts_output.md         - Phase 2 output
-  images/                         - Generated images
-
-reference_materials/
-  March/                          - Published March newsletter + card PNGs
-  April/                          - Published April newsletter + card PNGs
-  Newsletter_Backgound_Image.png  - Background pattern used in Figma
-```
-
----
-
-## Input File Format
+Name it `input_data_[month].txt`:
 
 ```
 Topic 1:
 - https://...
 - https://...
-Narrative: Focus on the competitive dynamics between OpenAI and Google.
+Narrative: Focus on the OpenAI vs Google dynamic.
 
 Topic 2:
 - https://...
 No summary.
 ```
 
-- `Topic N:` marks each story
-- Multiple links per topic are synthesized into one entry
+- `Topic N:` marks each story; multiple links are synthesized into one entry
 - `Narrative:` optionally steers the angle
-- `No summary.` produces a headline-only card (horizontal format)
+- `No summary.` produces a headline-only card
 
 ---
 
-## Human Involvement Summary
+## Project files
 
-| Step | What you do |
-|---|---|
-| Start Phase 1 | Upload the input file |
-| End Phase 1 | Review and approve newsletter copy |
-| Start Phase 2 | Specify the art style |
-| During Phase 2 | Provide API key for auto-generation, or generate manually and drop into `/images/` |
-| Start Phase 3 | Paste images onto Figma canvas |
-| During Phase 3 | Swap fonts using Font Switcher plugin |
-| End Phase 3 | Export the 10 cards from Figma |
+```
+CLAUDE.md               AI instructions (role, input format, workflow)
+phase0–3_*.md           Detailed rules for each phase
+reference_materials/    Published newsletters + card PNGs for style calibration
+web-app/index.html      Browser UI (shown above)
+[Month]/                Per-issue outputs and generated images
+```
