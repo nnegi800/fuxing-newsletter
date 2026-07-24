@@ -48,7 +48,7 @@ Read the provided input and extract for each topic:
 Topics with neither flag are treated as standard (headline + summary).
 
 ## Step 2 — Fetch & Read
-For each topic, use the provided URLs and any supplementary article content the user has pasted. If no content is pasted and a URL is provided, draw on your training knowledge about that story. If a topic has multiple links, synthesize all into one unified set of information.
+For each topic, use the provided URLs and any supplementary article content the user has pasted. 
 
 ## Step 3 — Generate Headline
 Target length: STRICTLY within range 90-110 characters. For `No summary.` topics: STRICTLY within range 160-180 characters.
@@ -1434,6 +1434,7 @@ function app() {
       this.currentMonth = m;
       this.monthInput = m;
       localStorage.setItem('fuxing_current_month', m);
+      this.resetPhases();
       this.loadMonthState();
       this.view = 'phases';
     },
@@ -1443,9 +1444,23 @@ function app() {
       if (this.monthInput.trim()) this.startWithDiscovery();
     },
 
+    // Restores phases to a blank slate. Used whenever a NEW month run begins
+    // so a fresh Discover/Upload never inherits another month's leftover
+    // in-memory state (loadMonthState() is a no-op when there's nothing saved
+    // yet for that month, so without this reset stale data would persist).
+    resetPhases() {
+      this.phases = {
+        0: { status: 'idle', candidates: [], additionalTopics: '', inputDataContent: '', skipped: false, searchProgress: [], aiStreaming: false, addingTopics: false },
+        1: { status: 'idle', rawOutput: '', topics: [], inputData: '', showInput: true },
+        2: { status: 'idle', rawOutput: '', prompts: [], artStyle: '', images: {}, stale: false },
+        3: { status: 'idle', stepsChecked: Array(10).fill(false), finalImages: {}, stale: false, copied: false },
+      };
+    },
+
     startWithDiscovery() {
       this.currentMonth = this.monthInput.trim().toLowerCase();
       localStorage.setItem('fuxing_current_month', this.currentMonth);
+      this.resetPhases();
       this.loadMonthState();
       this.view = 'phases';
       this.activePhase = 0;
@@ -1457,6 +1472,7 @@ function app() {
       const content = await readFileAsText(file);
       this.currentMonth = this.monthInput.trim().toLowerCase() || this.currentMonth || 'unknown';
       localStorage.setItem('fuxing_current_month', this.currentMonth);
+      this.resetPhases();
       this.loadMonthState();
       this.phases[1].inputData = content;
       this.view = 'phases';
