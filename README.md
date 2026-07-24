@@ -3,13 +3,12 @@
 ![Fuxing Newsletter Generator](docs/preview.png)
 
 An AI-assisted workflow that turns a list of article links into finished, Figma-ready cards for Cartier's monthly Fuxing newsletter.
-Watch Demo here: https://www.loom.com/share/ea5c331a64054699a9d99382968fdb88
-
 ---
 
 ## How it works
 
 Each issue moves through four phases. Every phase begins only after you approve the previous output.
+Watch Demo here: https://www.loom.com/share/ea5c331a64054699a9d99382968fdb88
 
 | Phase | You provide | You get |
 |---|---|---|
